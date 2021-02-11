@@ -21,3 +21,7 @@ pip install -r requirements.txt
 # create BDD for example sandwich.dimacs
 ./ddueruem examples/sandwich.dimacs
 ```
+
+### Troubleshooting
+1) `bash: ./ddueruem.py: Permission denied` <br>
+**Solution:** Execute `chmod u+x ddueruem.py` to make the file executable.
