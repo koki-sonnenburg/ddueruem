@@ -459,7 +459,8 @@ def report(cnf, order):
     print("Order:", order, sep = "\t")
     print("--------------------------------")
 
-    report_filename = f"reports/{os.path.basename(cnf.filename).split('.')[0]}.rep"
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M")
+    report_filename = f"reports/{os.path.basename(cnf.filename).split('.')[0]}-{timestamp}.rep"
 
     with open(report_filename, "w") as file:
         file.write(f"{cnf.filename}{os.linesep}")
