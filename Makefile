@@ -2,11 +2,12 @@ BUDDY_SRC 	= .cache/buddy-2.4/src
 CUDD_SRC 	= .cache/cudd-3.0.0
 
 CC 			= gcc
-CFLAGS 		= -fPIC -mtune=native -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(EXTRA_CFLAGS)
+CFLAGS 		= -fPIC -mtune=native -DHAVE_IEEE_754 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -std=c99 -O3
 
-INCLUDES 	= 	-I/usr/include \
-        		-I$(BUDDY_SRC) -I$(BUDDY_SRC)/.. \
-         		-I$(CUDD_SRC) -I$(CUDD_SRC)/cudd -I$(CUDD_SRC)/epd -I$(CUDD_SRC)/mtr -I$(CUDD_SRC)/st -I$(CUDD_SRC)/util
+INCLUDES_CUDD 	= 	-I/usr/include \
+					-I$(CUDD_SRC) -I$(CUDD_SRC)/cudd -I$(CUDD_SRC)/epd -I$(CUDD_SRC)/mtr -I$(CUDD_SRC)/st -I$(CUDD_SRC)/util
+
+INCLUDES_BUDDY	= 	-I$(BUDDY_SRC) -I$(BUDDY_SRC)/..
 
 BUDDY_DLL_NAME 	= libbuddy.so
 BUDDY_SRCS = $(BUDDY_SRC)/bddio.c $(BUDDY_SRC)/bddop.c $(BUDDY_SRC)/bvec.c \
@@ -58,13 +59,16 @@ buddy: $(BUDDY_DLL_NAME)
 $(BUDDY_DLL_NAME): $(BUDDY_OBJS)
 	$(CC) -o $@ $(BUDDY_OBJS) -shared
 
+$(BUDDY_OBJS): %.o : %.c
+	$(CC) -c -o $@ $< $(CFLAGS) $(INCLUDES_BUDDY) 
+
 cudd: $(CUDD_DLL_NAME)
 
 $(CUDD_DLL_NAME): $(CUDD_OBJS)
 	$(CC) -o $@ $(CUDD_OBJS) -shared
 
-%.o: %.c 
-	$(CC) -c -o $@ $< $(CFLAGS) $(INCLUDES) 
+$(CUDD_OBJS): %.o : %.c
+	$(CC) -c -o $@ $< $(CFLAGS) $(INCLUDES_CUDD) 
 
 clean:
-	$(RM) -f $(BUDDY_OBJS) $(BUDDY_DLL_NAME) $(CUDD_OBJS) $(CUDD_DLL_NAME)
+	$(RM) -f $(BUDDY_OBJS) $(BUDDY_DLL_NAME) $(CUDD_OBJS) $(CUDD_DLL_NAME) 

@@ -1,14 +1,34 @@
+from ctypes import CDLL
+
 import os
 from os import path
+
+import re
 
 from utils.IO import blue, red, green, download, untar, verify_hash, log_info, log_error
 
 import subprocess
 
-def verify_lib(lib, hint_install):
+def declare(f, argtypes, restype = None):
+    x = f
+    x.argtypes  = argtypes
+
+    if restype:
+        x.restype   = restype
+
+    return x
+
+def verify_load_lib(lib, hint_install):
     if not path.exists(lib):
         log_error(red(lib), "not found, please install first with", blue(hint_install))
         exit(1)
+    else:
+        return CDLL(f"./{lib}")
+
+
+def flavour_filename(filename, stub):
+    filename = re.sub(".dd$", f"-{stub}.dd", filename)
+    return filename
 
 def install_library(name, stub, url, archive, archive_md5, sources, shared_lib, configure_params = "", clean = False):
 
@@ -36,7 +56,7 @@ def install_library(name, stub, url, archive, archive_md5, sources, shared_lib, 
         subprocess.run(['./configure', configure_params], cwd = sources, stdout=subprocess.PIPE).stdout.decode('utf-8')
 
         log_info("Building...")
-        subprocess.run(['make', stub], stdout=subprocess.PIPE).stdout.decode('utf-8')
+        subprocess.run(['make', stub, '-j4'], stdout=subprocess.PIPE).stdout.decode('utf-8')
 
     if path.exists(shared_lib):        
         if path.exists(shared_lib):

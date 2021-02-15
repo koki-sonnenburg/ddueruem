@@ -3,7 +3,7 @@ from ctypes import *
 import re
 
 from .Adapter import *
-from utils.IO import log_info, blue, hash_hex
+from utils.IO import log_info, log_warning, blue, hash_hex
 from config import *
 
 name        = "BuDDy 2.4"
@@ -18,15 +18,18 @@ configure_params = "CFLAGS=-fPIC -std=c99"
 
 hint_install = "--install buddy"
 
+reordering_algorithms = {
+    "sift": 3,
+    "sift-conv": 4
+}
+
 class BUDDY_Adapter():
 
     def __enter__(self):
-        verify_lib(shared_lib, hint_install)
+        buddy = verify_load_lib(shared_lib, hint_install)
 
-        buddy = CDLL(f"./{shared_lib}")
-
-        self.increase = 100000
-        buddy.bdd_init(1000000, 10000000)
+        self.increase = 1<<17
+        buddy.bdd_init(1<<20, 10000000)
         buddy.bdd_setminfreenodes(33)
         buddy.bdd_setmaxincrease(c_int(self.increase))
 
@@ -41,6 +44,19 @@ class BUDDY_Adapter():
     def name():
         return name
 
+    def set_dynorder(self, dynorder):
+        buddy = self.buddy
+        if dynorder == "off" or dynorder not in reordering_algorithms:
+            if dynorder != "off":
+                log_warning(f"BuDDy: Reordering algorithm not supported ({blue(dynorder)}).")
+
+            log_info(f"BuDDy: Disabled automatic reordering")
+            buddy.bdd_disable_reorder()
+
+        if dynorder in reordering_algorithms:
+            log_info(f"BuDDy: Enabled automatic reordering ({blue(dynorder)})")
+            buddy.bdd_autoreorder(reordering_algorithms[dynorder])
+
     @staticmethod
     def install(clean = False):
         if clean:
@@ -51,7 +67,7 @@ class BUDDY_Adapter():
         install_library(name, stub, url, archive, archive_md5, source_dir, shared_lib, configure_params, clean)
         log_info()
 
-    def format_cache(self, cnf, filename_bdd):
+    def format_cache(self, cnf, filename_bdd):        
         with open(filename_bdd, "r") as file:
             content = file.read()
 
@@ -81,9 +97,11 @@ class BUDDY_Adapter():
             f"order:{','.join([str(x) for x in order])}",
             f"n_vars:{n_vars}",
             f"n_nodes:{n_nodes}",
-            f"root:{root}"
+            f"root:0:{root}"
         ]
 
+        content.append("----")
+        
         for i in ids:
             var, low, high = nodes[i]
             content.append(f"{i} {var} 0:{low} 0:{high}")
@@ -92,35 +110,9 @@ class BUDDY_Adapter():
             file.write(f"{os.linesep}".join(content))
             file.write(os.linesep)
 
-    def deref(*vars):
-        buddy = self.buddy
+    def from_cnf(self, cnf, order, dynorder, filename_bdd):
+        filename_bdd = flavour_filename(filename_bdd, stub)
 
-        for x in vars:
-            buddy.bdd_delref(x)
-
-    def bdd_and(x, y, deref_operands = False):
-        buddy = self.buddy
-
-        z = buddy.bdd_and(x,y)
-        buddy.bdd_addref(z)
-
-        if deref_operands:
-            deref(x, y)
-
-        return z
-
-    def bdd_or(x, y):
-        buddy = self.buddy
-
-        z = buddy.bdd_or(x,y)
-        buddy.bdd_addref(z)
-
-        if deref_operands:
-            deref(x,y)
-
-        return z
-
-    def from_cnf(self, cnf, order, filename_bdd):
         buddy = self.buddy
         increase = self.increase
 
@@ -130,8 +122,8 @@ class BUDDY_Adapter():
         order = [x - 1 for x in order]   
         arr = (c_uint * len(order))(*order)
 
-        buddy.bdd_setvarorder(byref(arr))
-        buddy.bdd_disable_reorder()
+        self.set_dynorder(dynorder)
+        buddy.bdd_setvarorder(arr)
 
         full = None
         n = 0
@@ -141,7 +133,7 @@ class BUDDY_Adapter():
 
             if full:
                 increase = int(max(increase, buddy.bdd_nodecount(full) / 10))
-                increase = min(increase, 2500000)
+                increase = min(increase, 1000000)
                 buddy.bdd_setmaxincrease(c_int(increase))
 
             log_info(clause, f"({n} / {len(cnf.clauses)})")
@@ -171,14 +163,12 @@ class BUDDY_Adapter():
             else:
                 old = full
                 full = buddy.bdd_addref(buddy.bdd_and(full, cbdd))
-
+                buddy.bdd_delref(old)
                 buddy.bdd_delref(cbdd)
 
-        buddy.bdd_setvarorder(byref(arr))
+        buddy.bdd_fnsave(c_char_p(filename_bdd.encode("utf-8")), full)
 
-        if filename_bdd:
-            buddy.bdd_fnsave(c_char_p(filename_bdd.encode("utf-8")), full)
+        self.format_cache(cnf, filename_bdd)            
 
-            self.format_cache(cnf, filename_bdd)            
-
-            log_info("BDD saved to", blue(filename_bdd))
+        log_info("BDD saved to", blue(filename_bdd))
+        return filename_bdd 

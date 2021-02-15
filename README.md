@@ -1,5 +1,9 @@
 # ddueruem
-A wrapper for the BDD library BuDDy (CUDD, Sylvan, CacBDD to follow)
+A wrapper for the BDD library BuDDy and CUDD.
+
+### Requirements
+* `make`
+* `glibc`
 
 ### Usage:
 ```bash
@@ -15,11 +19,18 @@ pip install -r requirements.txt
 # show ddueruem help
 ./ddueruem -h
 
-# install BuDDy
-./ddueruem --install-buddy
+# install BuDDy & CUDD
+./ddueruem --install buddy cudd
 
 # create BDD for example sandwich.dimacs
-./ddueruem examples/sandwich.dimacs
+./ddueruem --buddy examples/sandwich.dimacs
+./ddueruem --cudd examples/sandwich.dimacs
+
+# preorder with FORCE
+./ddueruem examples/sandwich.dimacs --preorder force
+
+# Ignore a previously cached variable order
+./ddueruem examples/sandwich.dimacs --preorder force --ignore-cache
 ```
 
 ### Troubleshooting

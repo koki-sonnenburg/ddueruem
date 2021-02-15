@@ -70,7 +70,6 @@ def force_compute_cog(clause, order):
 def force_compute_span(clauses, order):
 
     span = []
-    #FIXME inefficient
     for clause in clauses:
         lspan = 0
         
@@ -108,7 +107,6 @@ def force_triage(cnf, n1 = 32):
 def sort_clauses_by_span(clauses, order):
     
     spans = []
-    order = [x + 1 for x in order]
 
     for clause in clauses:
         spans.append((clause, force_compute_span([clause], order) / (len(clause))))
