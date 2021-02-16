@@ -200,9 +200,9 @@ class CUDD_Adapter():
 
         lines = re.split("[\n\r]",content)
 
-        m = re.match(r"^:\s+(?P<n_nodes>\d+)\s+nodes\s+\d+\s+leaves\s+(?P<ssat>\d+)\s+minterms\s*$", lines[0])
+        m = re.match(r"^:\s+(?P<n_nodes>\d+)\s+nodes\s+\d+\s+leaves\s+(?P<ssat>[^\s]+)\s+minterms\s*$", lines[0])
+
         n_nodes = int(m["n_nodes"])
-        ssat = int(m["ssat"])
         root = re.split(r"\s+", lines[1])[2]
 
         root_ce = 0
