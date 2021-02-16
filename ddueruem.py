@@ -278,7 +278,7 @@ def report_order(cnf, order, filename_report):
 def run(filename, lib, preorder, dynorder, caching):
 
     if not path.exists(filename):
-        log_error("Could not find", blue(filename),"aborting.")
+        log_error(f"Could not find", blue(filename),f"aborting.{os.linesep}Either give the absolute path to the file or the relative path wrt", blue(os.path.realpath(__file__)))
         exit(1)
 
     filename_base = os.path.basename(filename).split('.')[0]
@@ -395,6 +395,8 @@ def cli():
     run(filename, lib, preorder, dynorder, caching)
 
 def init():    
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
     # check if the .cache directory exists and create it otherwise
     if not path.exists(".cache"):
         try:
