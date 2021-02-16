@@ -1,5 +1,5 @@
 # ddueruem
-A wrapper for the BDD library BuDDy and CUDD.
+A wrapper for the BDD libraries BuDDy and CUDD.
 
 ### Requirements
 * `make`
@@ -31,7 +31,15 @@ pip install -r requirements.txt
 
 # Ignore a previously cached variable order
 ./ddueruem examples/sandwich.dimacs --preorder force --ignore-cache
+
+# Disable automatic reordering
+./ddueruem examples/sandwich.dimacs --dynorder off
 ```
+
+### Defaults:
+* **Default lib:** BuDDy
+* **Preorder:** off
+* **Dynorder:** sift-converge
 
 ### Troubleshooting
 1) `bash: ./ddueruem.py: Permission denied` <br>

@@ -270,7 +270,7 @@ def report_order(cnf, order, filename_report):
     ]
 
     content = os.linesep.join(contents)
-    
+
     with open(filename_report, "w") as file:
         file.write(content)
         file.write(os.linesep)
@@ -347,7 +347,7 @@ def cli():
     parser.add_argument("--ignore-cache", help =CLI_HELP["--ignore-cache"], dest = "caching", action = "store_false", default = True)
 
     # Reorder
-    parser.add_argument("--dynorder", help = CLI_HELP["--dynorder"], choices = DYNORDER_CHOICES, type = str.lower, default = "sift")
+    parser.add_argument("--dynorder", help = CLI_HELP["--dynorder"], choices = DYNORDER_CHOICES, type = str.lower, default = "sift-conv")
 
     # Install options
     parser.add_argument("--install", nargs = "+", choices = INSTALL_CHOICES, type = str.lower, help = CLI_HELP["--install"], default = [])
