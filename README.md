@@ -2,6 +2,7 @@
 A wrapper for the BDD libraries BuDDy and CUDD.
 
 ### Requirements
+* Python 3.8+
 * `make`
 * `glibc`
 
