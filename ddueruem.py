@@ -13,6 +13,8 @@ import hashlib
 import os
 from os import path
 
+from pprint import pprint
+
 from random import shuffle
 import re
 import requests
@@ -28,6 +30,11 @@ import config
 
 from utils.VariableOrdering import compute_default_order, force, force_triage, sort_clauses_by_span
 from utils.IO import log_info, log_warning, log_error, blue, verify_hash, hash_hex
+
+class FeatureDiagram:
+
+    def __init__(self, root):
+        self.root = root
 
 class CNF:
 
@@ -102,6 +109,141 @@ def parse_dimacs(filename):
         print(f"[WARNING] Specified number of clauses ({nclauses}) differs from number of parsed ones ({len(clauses)}).")
 
     return CNF(filename, nvars, var_descs, clauses)
+
+def enumerate_features(root, id = 1, id2feature = {}, feature2id = {}):
+    feature, _, _, children = root
+
+    id2feature[id] = feature
+    feature2id[feature] = id
+    id += 1
+
+    for child in children:
+        id2feature, feature2id, id = enumerate_features(child, id, id2feature, feature2id)
+
+    return id2feature, feature2id, id
+
+def gather_constraints(root, constraints, feature2id):
+
+    feature_name, _, _, children = root
+
+    group_processed = False
+    for child in children:
+        child_name, _, child_type, _ = child
+
+        #child => parent (not(child) /\ parent)
+        constraints.append([-feature2id[child_name], feature2id[feature_name]])
+
+        if child_type == "optional":
+            pass
+        elif child_type == "mandatory":
+            #parent => child (not(parent) /\ child)
+            constraints.append([-feature2id[feature_name], feature2id[child_name]])
+        elif child_type == "or" and not group_processed:
+            group_processed = True
+
+            clause = [-feature2id[feature_name]]
+            for x, _, _, _ in children:
+                clause.append(feature2id[x])
+
+            constraints.append(clause)
+
+        elif child_type == "alternative" and not group_processed:       
+            group_processed = True
+
+            clause = [-feature2id[feature_name]]
+            for x, _, _, _ in children:
+                clause.append(feature2id[x])
+
+            constraints.append(clause)
+
+            for x, _, _, _ in children: 
+                for y, _, _, _ in children:
+                    if x == y:
+                        break
+
+                    constraints.append([-feature2id[feature_name], -feature2id[x], -feature2id[y]])
+
+        constraints = gather_constraints(child, constraints, feature2id)
+
+    return constraints
+
+def fd2constraints(root):
+
+    id2feature, feature2id, _ = enumerate_features(root)
+
+    constraints = []
+
+    feature, _, _, _ = root
+    constraints.append([feature2id[feature]])
+
+    constraints = gather_constraints(root, constraints, feature2id)    
+
+    print(len(constraints))
+    print(constraints)
+
+    return []
+
+def parse_uvl(filename):
+    with open(filename) as file:
+        lines = file.readlines()
+
+    for i, line in enumerate(lines):
+        indent = 0
+        if m := re.search(r"[^\n\r\s]", line):
+            indent = m.start()
+
+        lines[i] = (indent, line.strip())
+
+    start = 0
+
+    for i, x in enumerate(lines):
+        d, name = x
+        if d == 1:
+            start = i
+            break
+
+    root, index = parse_uvl_rec(lines, start)
+
+    fd_constraints = fd2constraints(root)
+
+    return root
+
+def parse_uvl_rec(lines, index):
+    d, name = lines[index]
+
+    children_type = None
+
+    m = re.match(r"(?P<feature>\w+)(\s+(?P<modifier>[{}\w]+))?", name)
+
+    if not m:
+        raise ValueError(f"Malformed entry ({name})")
+
+    feature_depth = d
+    children = []
+    while index in range(0, len(lines) - 1):
+        index += 1
+
+        d, name = lines[index]
+
+        if name in [""]:
+            continue
+
+        if d <= feature_depth or name == "constraints":
+            index -= 1
+            break
+
+        if name in ["mandatory", "optional", "or", "alternative"]:
+            children_type = name
+            continue
+
+        child_feature, index = parse_uvl_rec(lines, index)
+        c_feature, c_modifier, _, c_children = child_feature
+
+        child_feature = (c_feature, c_modifier, children_type, c_children)
+
+        children.append(child_feature)
+
+    return (m["feature"], m["modifier"], None, children), index
 
 ###
 def get_lib(lib_name):
@@ -414,5 +556,7 @@ def init():
         else:
             log_info(f"Created reports directory at {path.abspath('reports')}")
 
-init()
-cli()
+#init()
+#cli()
+
+parse_uvl("examples/sandwich.uvl")
