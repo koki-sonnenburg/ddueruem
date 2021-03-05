@@ -167,9 +167,7 @@ def gather_constraints(root, constraints, feature2id):
 
     return constraints
 
-def fd2constraints(root):
-
-    id2feature, feature2id, _ = enumerate_features(root)
+def fd2constraints(root, feature2id):
 
     constraints = []
 
@@ -202,13 +200,98 @@ def parse_uvl(filename):
             start = i
             break
 
-    root, index = parse_uvl_rec(lines, start)
+    root, index = parse_features_rec(lines, start)
 
-    fd_constraints = fd2constraints(root)
+    id2feature, feature2id, _ = enumerate_features(root)
 
-    return root
+    fd_constraints = fd2constraints(root, feature2id)
 
-def parse_uvl_rec(lines, index):
+    ctc_cnf_constraints = []
+
+    ctc_nt_constraints = []
+
+    for line in lines[index:]:
+        d, content = line
+
+        if content in ["", "constraints"]:
+            continue
+
+        raw = re.split(r"\s+", content)
+
+        lhs = []
+        rhs = []
+        toLHS = True
+
+        lhs_ops = []
+        rhs_ops = []
+
+        for x in raw:
+            if x == "=>":
+                toLHS = False
+                continue
+
+            negated = False
+
+            if x[0] == "!":
+                x = x[1:]
+                negated = True
+
+            if x in feature2id:
+                x = feature2id[x]
+                if negated:
+                    x = -x
+            else:
+                if toLHS:
+                    lhs_ops.append(x)
+                else:
+                    rhs_ops.append(x)
+
+            if toLHS:
+                lhs.append(x)
+            else:
+                rhs.append(x)
+
+        if not lhs_ops and not rhs_ops:
+            lhs = [-int(x) for x in lhs]
+            rhs = [int(x) for x in rhs]
+
+            clause = lhs
+            clause.extend(rhs)
+
+            log_info("Clause", blue(content), "contains no operator")
+            log_info("Adding", blue(clause))
+
+            ctc_cnf_constraints.append(clause)
+        else:
+            print("Non trivial constraint", blue(content))
+            print(lhs, rhs)
+            print(lhs_ops, rhs_ops)
+
+            lhs = to_ast(lhs, lhs_ops)
+            rhs = to_ast(rhs, rhs_ops)
+
+            constraint = ("|", ("!", lhs), rhs)
+
+            print("-->", blue(constraint))
+            ctc_nt_constraints.append(constraint)
+
+    return root, fd_constraints, ctc_cnf_constraints, ctc_nt_constraints
+
+def to_ast(formula, formula_ops):
+    for x in formula:
+        if x in ["(", ")"]:
+            raise ValueError("Non flat constraints are currently not supported, please open a feature requst, if you require this feature")
+
+    if not formula_ops:
+        return ("&", formula)
+    else:
+        if formula_ops.count(formula_ops[0]) == len(formula_ops):
+            op = formula_ops[0]
+            formula = [x for x in formula if x != op]
+            return (op, formula)
+
+
+def parse_features_rec(lines, index):
     d, name = lines[index]
 
     children_type = None
@@ -236,7 +319,7 @@ def parse_uvl_rec(lines, index):
             children_type = name
             continue
 
-        child_feature, index = parse_uvl_rec(lines, index)
+        child_feature, index = parse_features_rec(lines, index)
         c_feature, c_modifier, _, c_children = child_feature
 
         child_feature = (c_feature, c_modifier, children_type, c_children)
@@ -559,4 +642,4 @@ def init():
 #init()
 #cli()
 
-parse_uvl("examples/sandwich.uvl")
+parse_uvl("examples/cerf.uvl")
