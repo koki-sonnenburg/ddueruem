@@ -92,8 +92,8 @@ class BUDDY_Adapter():
         ids = sorted([x for x in nodes.keys()])
 
         content = [
-            f"input_file:{cnf.filename}",
-            f"input_hash:{hash_hex(cnf.filename)}",
+            f"input_file:{cnf.meta['filename']}",
+            f"input_hash:{hash_hex(cnf.meta['filename'])}",
             f"order:{','.join([str(x) for x in order])}",
             f"n_vars:{n_vars}",
             f"n_nodes:{n_nodes}",
@@ -116,7 +116,7 @@ class BUDDY_Adapter():
         buddy = self.buddy
         increase = self.increase
 
-        buddy.bdd_setvarnum(cnf.nvars)
+        buddy.bdd_setvarnum(cnf.get_no_variables())
 
         # Normalize as BuDDy indexes from 0
         order = [x - 1 for x in order]   

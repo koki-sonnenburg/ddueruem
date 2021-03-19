@@ -5,7 +5,7 @@ from utils.IO import log_info
 
 
 def compute_default_order(cnf):
-    return [x + 1 for x in range(0, cnf.nvars)]
+    return [x + 1 for x in range(0, cnf.get_no_variables)]
 
 ### FORCE (Aloul et al.)
 
@@ -73,6 +73,8 @@ def force_compute_span(clauses, order):
     for clause in clauses:
         lspan = 0
         
+        print(clause)
+
         indizes = [order.index(abs(x)) for x in clause]
         lspan = max(indizes) - min(indizes)
 

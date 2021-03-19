@@ -39,7 +39,7 @@ def log_info(msg = None, *msgs):
         return
 
     if config.verbose:
-        print(f"[{colored(datetime.now().strftime('%Y-%m-%d:%H-%M-%S'), 'blue')}]", msg, *msgs)
+        print(f"[{colored(timestamp(), 'blue')}]", msg, *msgs)
 
 def log_warning(msg, *msgs):
     print(colored("[WARNING]", "yellow", attrs = ["bold"]), msg, *msgs)
@@ -86,3 +86,8 @@ def prepend_input_file_signature(filename_to_hash, filename_to_store):
     with open(filename_to_store, "w") as file:
         file.write(f"{filename_to_hash}:{hash(filename_to_hash)}{os.linesep}")
         file.write(contents)
+
+### Time
+
+def timestamp():
+    return datetime.now().strftime('%Y-%m-%d:%H-%M-%S')

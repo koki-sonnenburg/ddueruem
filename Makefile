@@ -1,5 +1,5 @@
-BUDDY_SRC 	= .cache/buddy-2.4/src
-CUDD_SRC 	= .cache/cudd-3.0.0
+BUDDY_SRC 	= cache/buddy-2.4/src
+CUDD_SRC 	= cache/cudd-3.0.0
 
 CC 			= gcc
 CFLAGS 		= -fPIC -mtune=native -DHAVE_IEEE_754 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -std=c99 -O3

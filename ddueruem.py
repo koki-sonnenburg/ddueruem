@@ -28,6 +28,8 @@ import tarfile
 from adapters import BUDDY, CUDD
 import config
 
+from utils.CNF import CNF
+
 from utils.VariableOrdering import compute_default_order, force, force_triage, sort_clauses_by_span
 from utils.IO import log_info, log_warning, log_error, blue, verify_hash, hash_hex
 
@@ -36,13 +38,6 @@ class FeatureDiagram:
     def __init__(self, root):
         self.root = root
 
-class CNF:
-
-    def __init__(self, filename, nvars, var_descs, clauses):
-        self.filename = filename
-        self.nvars = nvars
-        self.var_descs = var_descs
-        self.clauses = clauses
 
 
 DYNORDER_CHOICES = ["off", "sift", "sift-conv"]
@@ -51,7 +46,7 @@ PREORDER_CHOICES = ["force", "force-triage"]
 
 
 CLI_HELP = {
-    "file": "The DIMACS file to construct the BDD for",
+    "file": "The DIMACS/UVL file to construct the BDD for",
 
     "--silent": "Disable all output (libraries may have unsuppressible output).",
     "--verbose": "Enable verbose output.",
@@ -69,46 +64,6 @@ CLI_HELP = {
 }
 
 #
-
-def parse_dimacs(filename):
-
-    var_descs = {}
-
-    nvars = 0
-    nclauses = 0
-
-    clauses = []
-
-    with open(filename) as file:
-        for line in file.readlines():
-            m = re.match(r"(?P<type>[cp]) (?P<content>.*)", line)
-
-            if m is None:
-                line = re.sub(r"[\n\r]", "", line)
-                clause = re.split(r"\s+", line)
-                clause = [int(x) for x in clause if x != '0']
-                
-                clauses.append(clause)
-
-            elif m["type"] == "c":
-                m = re.match(r"\s*(?P<id>[1-9][0-9]*) (?P<desc>\w+)", m["content"])
-
-                if m is not None:
-                    var_descs[m["id"]] = m["desc"]
-
-            elif m["type"] == "p":
-                m = re.match(r"\s*(?P<type>\w+) (?P<nvars>\d+) (?P<nclauses>\d+)", m["content"])
-
-                if m["type"] != "cnf":
-                    print(f"[ERROR] Only CNFs are supported at this point, but type is ({m['type']})")
-
-                nvars = int(m["nvars"])
-                nclauses= int(m["nclauses"])
-
-    if nclauses != len(clauses):
-        print(f"[WARNING] Specified number of clauses ({nclauses}) differs from number of parsed ones ({len(clauses)}).")
-
-    return CNF(filename, nvars, var_descs, clauses)
 
 def enumerate_features(root, id = 1, id2feature = {}, feature2id = {}):
     feature, _, _, children = root
@@ -381,7 +336,7 @@ def satcount(root_ce, root, nodes, cnf):
         node, depth, complemented = stack.pop()
 
         if (node == 0 and complemented) or (node == 1 and not complemented):
-            count += 1 << (cnf.nvars - depth)
+            count += 1 << (cnf.get_no_variables() - depth)
         elif node != 0 and node != 1:
             _, low_ce, low, high_ce, high = nodes[node]
 
@@ -406,7 +361,7 @@ def run_preorder(cnf, preorder):
     return order
 
 def run_lib(lib, cnf, order, dynorder, filename_bdd):
-    log_info("Building BDD for", colored(cnf.filename, "blue"), "using", f"{colored(lib.name(), 'blue')}.")
+    log_info("Building BDD for", colored(cnf.meta["filename"], "blue"), "using", f"{colored(lib.name(), 'blue')}.")
 
     with lib() as bdd:
         filename_bdd = bdd.from_cnf(cnf, order, dynorder, filename_bdd)
@@ -416,7 +371,7 @@ def run_lib(lib, cnf, order, dynorder, filename_bdd):
 def report(cnf, filename_bdd, filename_report_ts, filename_report):
 
     if not path.exists(filename_bdd):
-        log_error("No cached BDD found for", colored(cnf.filename, "blue"))
+        log_error("No cached BDD found for", colored(cnf.meta["filename"], "blue"))
         exit(1)
 
     with open(filename_bdd) as file:
@@ -461,14 +416,14 @@ def report(cnf, filename_bdd, filename_report_ts, filename_report):
     ssat = satcount(root_ce, root, nodes, cnf)
 
     print("--------------------------------")
-    print(f"Results for {colored(cnf.filename, 'blue')}:")
+    print(f"Results for {colored(cnf.meta['filename'], 'blue')}:")
     print("#SAT:", ssat, sep = "\t")
     print("Nodes:", n_nodes, sep = "\t")
     print("--------------------------------")
 
     contents = [
-        f"file:{cnf.filename}",
-        f"file_md5:{hash_hex(cnf.filename)}",
+        f"file:{cnf.meta['filename']}",
+        f"file_md5:{hash_hex(cnf.meta['filename'])}",
         f"bdd:{filename_bdd}",
         f"bdd_md5:{hash_hex(filename_bdd)}",
         f"order:{','.join([str(x) for x in order])}",
@@ -489,8 +444,8 @@ def report(cnf, filename_bdd, filename_report_ts, filename_report):
 def report_order(cnf, order, filename_report):
 
     contents = [
-        f"file:{cnf.filename}",
-        f"file_md5:{hash_hex(cnf.filename)}",
+        f"file:{cnf.meta['filename']}",
+        f"file_md5:{hash_hex(cnf.meta['filename'])}",
         f"order:{','.join([str(x) for x in order])}"
     ]
 
@@ -511,9 +466,8 @@ def run(filename, lib, preorder, dynorder, caching):
     filename_report_ts = f"{config.REPORT_DIR}/{filename_base}-{datetime.now().strftime('%Y%m%d%H%M%S')}.ddrep"
     filename_bdd = f"{config.CACHE_DIR}/{filename_base}.dd" 
 
-    cnf = parse_dimacs(filename)
+    cnf = CNF.from_DIMACS(filename)
 
-    #FIXME Read from report file (date wildcard)
     cache = None
     if path.exists(filename_report) and caching:
         log_info(f"Found cache for", blue(filename), f"({os.path.relpath(filename_report)})")
@@ -578,7 +532,6 @@ def cli():
     parser.add_argument("--install", nargs = "+", choices = INSTALL_CHOICES, type = str.lower, help = CLI_HELP["--install"], default = [])
     parser.add_argument("--clean-install", nargs = "+", choices = INSTALL_CHOICES, type = str.lower, help = CLI_HELP["--clean-install"], default = [])
 
-
     args = parser.parse_args()
 
     # Perform clean installs:
@@ -611,6 +564,12 @@ def cli():
         config.silent = False
 
     filename = args.file
+
+    if filename is None:
+        log_error("No filename given and not in setup mode. Exiting.")
+        parser.print_help()
+        exit()
+
     preorder = args.preorder
     caching  = args.caching
     dynorder = args.dynorder
@@ -620,26 +579,27 @@ def cli():
     run(filename, lib, preorder, dynorder, caching)
 
 def init():    
+
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
-    # check if the .cache directory exists and create it otherwise
-    if not path.exists(".cache"):
+    cache_dir = config.CACHE_DIR
+    report_dir = config.REPORT_DIR
+
+    if not path.exists(cache_dir):
         try:
-            os.mkdir(".cache")
+            os.mkdir(cache_dir)
         except OSError as ose:
-            log_error("[ERROR] Creating of directory", colored(".cache", "blue"), "failed")
+            log_error("[ERROR] Creating of directory", colored(cache_dir, "blue"), "failed")
         else:
-            log_info(f"Created cache directory at {path.abspath('.cache')}")
+            log_info(f"Created cache directory at {path.abspath(cache_dir)}")
 
-    if not path.exists("reports"):
+    if not path.exists(report_dir):
         try:
-            os.mkdir("reports")
+            os.mkdir(report_dir)
         except OSError as ose:
-            log_error("[ERROR] Creating of directory", colored("reports", "blue"), "failed")
+            log_error("[ERROR] Creating of directory", colored(report_dir, "blue"), "failed")
         else:
-            log_info(f"Created reports directory at {path.abspath('reports')}")
+            log_info(f"Created report directory at {path.abspath(report_dir)}")
 
-#init()
-#cli()
-
-parse_uvl("examples/cerf.uvl")
+init()
+cli()

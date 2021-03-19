@@ -153,7 +153,7 @@ class CUDD_Adapter():
         order = [x - 1 for x in order] 
         arr = (c_uint * len(order))(*order)
 
-        for x in range(0, cnf.nvars):
+        for x in range(0, cnf.get_no_variables()):
             self.cudd_bddnewvar(manager, x)
 
         self.cudd_setorder(manager, arr)
@@ -188,7 +188,7 @@ class CUDD_Adapter():
             full = tmp
 
         with STDOUT_Recorder(filename_bdd):
-            self.cudd_info(manager, full, cnf.nvars, 3)
+            self.cudd_info(manager, full, cnf.get_no_variables(), 3)
 
         self.format_cache(cnf, filename_bdd, order)  
         log_info("BDD saved to", blue(filename_bdd))
@@ -212,11 +212,13 @@ class CUDD_Adapter():
         else:
             root = int(root, 16)
 
+        filename_cnf = cnf.meta["filename"]
+
         content = [
-            f"input_file:{cnf.filename}",
-            f"input_hash:{hash_hex(cnf.filename)}",
+            f"input_file:{filename_cnf}",
+            f"input_hash:{hash_hex(filename_cnf)}",
             f"order:{','.join([str(x + 1) for x in order])}",
-            f"n_vars:{cnf.nvars}",
+            f"n_vars:{cnf.get_no_variables()}",
             f"n_nodes:{n_nodes}",
             f"root:{root_ce}:{root}"
         ]
