@@ -4,7 +4,7 @@ import re
 import sys
 
 from .Adapter import *
-from utils.IO import log_info, blue, hash_hex
+from utils.IO import hash_hex
 from config import *
 
 name        = "CUDD 3.0.0"

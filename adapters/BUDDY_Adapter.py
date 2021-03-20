@@ -2,8 +2,9 @@ from ctypes import *
 
 import re
 
-from .Adapter import *
-from utils.IO import log_info, log_warning, blue, hash_hex
+from .Adapter import declare, install_library
+from utils.IO import hash_hex
+import utils.Logging as Logging
 from config import *
 
 name        = "BuDDy 2.4"
@@ -60,12 +61,11 @@ class BUDDY_Adapter():
     @staticmethod
     def install(clean = False):
         if clean:
-            log_info(f"Clean installing {blue(name)}")
+            Logging.log_info(f"Clean installing", Logging.highlight(name))
         else:
-            log_info(f"Installing {blue(name)}")
+            Logging.log_info(f"Installing", Logging.highlight(name))
 
         install_library(name, stub, url, archive, archive_md5, source_dir, shared_lib, configure_params, clean)
-        log_info()
 
     def format_cache(self, cnf, filename_bdd):        
         with open(filename_bdd, "r") as file:

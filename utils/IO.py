@@ -20,13 +20,10 @@ i18n.set('filename_format', '{locale}.{format}')
 
 ### Download
 def untar(filepath):
-    log_info(f"Unpacking {filepath}")
-
     with tarfile.open(filepath) as archive:
         archive.extractall(path = config.CACHE_DIR)   
 
 def download(url, target):
-
     req = requests.get(url)
 
     with open(target, "wb") as file:
@@ -62,8 +59,7 @@ def prepend_input_file_signature(filename_to_hash, filename_to_store):
 
 ### Formatting
 
-def format(*msgs, color = None, attrs = None, return_type = str, str_sep = " "):
-    
+def bulk_format(*msgs, color = None, attrs = None, return_type = str, str_sep = " "):    
     out = []
 
     for msg in msgs:
@@ -71,11 +67,7 @@ def format(*msgs, color = None, attrs = None, return_type = str, str_sep = " "):
         msg = i18n.t(msg)
         if m := re.match(r"\$\$(?P<inner>[^$]+)\$\$", msg):
             msg = m["inner"]
-            if color:
-                if attrs:
-                    msg = colored(msg, color, attrs=attrs)
-                else:
-                    msg = colored(msg, color)
+            msg = format(msg, color, attrs)
 
         out.append(msg)
 
@@ -85,3 +77,12 @@ def format(*msgs, color = None, attrs = None, return_type = str, str_sep = " "):
         return str_sep.join(out)    
     else:
         raise TypeError("out must be list or str")
+
+def format(msg, color = None, attrs = None):
+    if color:
+        if attrs:
+            msg = colored(msg, color, attrs=attrs)
+        else:
+            msg = colored(msg, color)
+
+    return msg

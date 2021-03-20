@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
-import argparse
+
+#------------------------------------------------------------------------------#
+
+import argparse             
 
 import os
 from os import path
 
+#------------------------------------------------------------------------------#
 
 import config
 from utils.IO import format
 import utils.Logging as Logging
 
+#------------------------------------------------------------------------------#
 
-def init(root_script = __file__):
+def init(root_script = __file__, silent = False):
 
     # move to directory of the executed script
     os.chdir(os.path.dirname(os.path.realpath(root_script)))
+
+    if silent:
+        Logging.silence()
 
     # initialize logging
     log_dir = config.LOG_DIR
@@ -48,7 +56,7 @@ def verify_create(dir):
         Logging.log("info_use_directory", Logging.highlight(path.abspath(dir)))
 
 def cli():    
-    parser = argparse.ArgumentParser(description=format("cli_desc"), usage=format("cli_usage"))
+    parser = argparse.ArgumentParser(description=format("cli_desc"))
     parser.add_argument("file", nargs = "?", help = format("cli_file"), default = None)
 
     # Run Options
@@ -68,20 +76,9 @@ def cli():
     parser.add_argument("--ignore-cached-order", help = format("cli--ignore-cached-order"), dest = "use_cached_order", action = "store_false", default = True)
     parser.add_argument("--ignore-cached-results", help = format("cli--ignore-cached-results"), dest = "use_cached_results", action = "store_false", default = True)
 
-    # Install Options
-    parser.add_argument("--install", nargs = "+", choices = config.INSTALL_CHOICES, type = str.lower, help = format("cli--install"), default = [])
-    parser.add_argument("--clean-install", nargs = "+", choices = config.INSTALL_CHOICES, type = str.lower, help = format("cli--clean-install"), default = [])
-
     args = parser.parse_args()
 
-    # # Perform clean installs:
-    # libs_clean_install = args.clean_install
-    # libs_install = args.install
+    init()
 
-    # if libs_clean_install or libs_install:
-    #     config.verbose = True
-    #     log_info("Install requested, ignoring remaining parameters and flags")
-
-
-init()
-cli()
+if __name__ == "__main__":
+    cli()
