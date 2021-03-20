@@ -60,11 +60,6 @@ class BUDDY_Adapter():
 
     @staticmethod
     def install(clean = False):
-        if clean:
-            Logging.log_info(f"Clean installing", Logging.highlight(name))
-        else:
-            Logging.log_info(f"Installing", Logging.highlight(name))
-
         install_library(name, stub, url, archive, archive_md5, source_dir, shared_lib, configure_params, clean)
 
     def format_cache(self, cnf, filename_bdd):        

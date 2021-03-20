@@ -3,7 +3,7 @@ from ctypes import *
 import re
 import sys
 
-from .Adapter import *
+from .Adapter import declare, install_library
 from utils.IO import hash_hex
 from config import *
 
@@ -133,13 +133,7 @@ class CUDD_Adapter():
 
     @staticmethod
     def install(clean = False):
-        if clean:
-            log_info(f"Clean installing {blue(name)}")
-        else:
-            log_info(f"Installing {blue(name)}")
-
         install_library(name, stub, url, archive, archive_md5, source_dir, shared_lib, configure_params, clean)
-        log_info()
 
     def from_cnf(self, cnf, order, dynorder,filename_bdd):
 

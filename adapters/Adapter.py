@@ -32,6 +32,11 @@ def flavour_filename(filename, stub):
 
 def install_library(name, stub, url, archive, archive_md5, sources, shared_lib, configure_params = "", clean = False):
 
+    if clean:
+        Logging.log_info(f"Clean installing", Logging.highlight(name))
+    else:
+        Logging.log_info(f"Installing", Logging.highlight(name))
+        
     if path.exists(shared_lib):
         if clean:
             Logging.log_info(f"Ignoring existing shared library", Logging.highlight(shared_lib))
