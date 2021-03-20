@@ -1,10 +1,7 @@
 from datetime import datetime
-
-import i18n
-
 import os
-import re
-from termcolor import colored
+
+from .IO import format
 
 logger = None
 
@@ -17,26 +14,6 @@ log_level_volatile = LL_ALL
 log_level_persistent = LL_ALL
 
 
-# styling
-def format(msgs, color = None, attrs = None):
-    
-    out = []
-
-    for msg in msgs:
-        msg = str(msg)
-        msg = i18n.t(msg)
-        if m := re.match(r"\$\$(?P<inner>[^$]+)\$\$", msg):
-            msg = m["inner"]
-            if color:
-                if attrs:
-                    msg = colored(msg, color, attrs)
-                else:
-                    msg = colored(msg, color)
-
-        out.append(msg)
-
-    return out    
-
 def highlight(x):
     return f"$${x}$$"
 
@@ -44,13 +21,30 @@ def timestamp(sep = "", splitsep = ":"):
     return datetime.now().strftime(f"%Y{sep}%m{sep}%d{splitsep}%H{sep}%M{sep}%S")
 
 # logging
+
+def log(*msgs):
+    if log_level_persistent >= LL_ALL and logger:
+        logger.log(timestamp(), "[#]", format(*msgs))
+
+    if log_level_volatile >= LL_ALL:
+        print(format(*msgs, color = "green"))
+
 def log_info(*msgs):
 
     if log_level_persistent >= LL_INFO and logger:
-        logger.log("[I]", timestamp(), *format(msgs))
+        logger.log(timestamp(), "[I]", format(*msgs))
 
     if log_level_volatile >= LL_INFO:
-        print(*format(msgs, "blue"))
+        print(format(*msgs, color = "blue"))
+
+
+def log_warning(*msgs):
+
+    if log_level_persistent >= LL_WARNING and logger:
+        logger.log(timestamp(), "[W]", format(*msgs))
+
+    if log_level_volatile >= LL_WARNING:
+        print(format("$$Warning$$", color = "red", attrs = ["bold"]), format(*msgs, color = "red"))
 
 
 def init(filename, volatile_level = None, persistent_level = None):
@@ -61,13 +55,9 @@ def init(filename, volatile_level = None, persistent_level = None):
     if persistent_level:
         log_level_persistent = persistent_level
     
-    # initialize i18n
-    i18n.load_path.append("i18n")
-    i18n.set('filename_format', '{locale}.{format}')
-    
     logger = Logger(filename)
-    log_info("Setting volatile log level to:", highlight(log_level_volatile))
-    log_info("Setting persistent level to:", highlight(log_level_persistent))
+    log_info("info_set_volatile_loglevel", highlight(log_level_volatile))
+    log_info("info_set_persistent_loglevel", highlight(log_level_persistent))
 
 class Logger:
     def __init__(self, filename):
@@ -75,5 +65,9 @@ class Logger:
 
     def log(self, *msgs):
         with open(self.logfile, "a") as file:
-            file.write(" ".join(msgs))
+            if len(msgs) == 1:
+                file.write(msgs[0])
+            else:
+                file.write(" ".join(msgs))
+
             file.write(os.linesep)

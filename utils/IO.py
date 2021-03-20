@@ -2,8 +2,11 @@ from datetime import datetime, timedelta
 
 import hashlib
 
+import i18n
+
 import os
 
+import re
 import requests
 
 import tarfile
@@ -11,9 +14,11 @@ from termcolor import colored
 
 import config
 
+# initialize i18n
+i18n.load_path.append("i18n")
+i18n.set('filename_format', '{locale}.{format}')
 
 ### Download
-
 def untar(filepath):
     log_info(f"Unpacking {filepath}")
 
@@ -55,4 +60,28 @@ def prepend_input_file_signature(filename_to_hash, filename_to_store):
         file.write(f"{filename_to_hash}:{hash(filename_to_hash)}{os.linesep}")
         file.write(contents)
 
-### Time
+### Formatting
+
+def format(*msgs, color = None, attrs = None, return_type = str, str_sep = " "):
+    
+    out = []
+
+    for msg in msgs:
+        msg = str(msg)
+        msg = i18n.t(msg)
+        if m := re.match(r"\$\$(?P<inner>[^$]+)\$\$", msg):
+            msg = m["inner"]
+            if color:
+                if attrs:
+                    msg = colored(msg, color, attrs=attrs)
+                else:
+                    msg = colored(msg, color)
+
+        out.append(msg)
+
+    if return_type == list:
+        return out
+    elif return_type == str:
+        return str_sep.join(out)    
+    else:
+        raise TypeError("out must be list or str")
