@@ -1,33 +1,44 @@
 #!/usr/bin/env python3
-import Logging
+import i18n
 
-def init(root_script):
+import os
+from os import path
+
+import config
+import utils.Logging as Logging
+
+def init(root_script = __file__):
 
     # move to directory of the executed script
     os.chdir(os.path.dirname(os.path.realpath(root_script)))
 
-    cache_dir = config.CACHE_DIR
-    verify_create(cache_dir)
-    
     # initialize logging
-        
+    log_dir = config.LOG_DIR
+    logfile = f"{log_dir}/log-{Logging.timestamp('-', '-')}.log"
+    
+    with open(logfile, "w+") as file:
+        pass
+
+    Logging.init(logfile)
 
     # verify existence of the folders (cache, log, report)
-
-    log_dir = config.LOG_DIR
+    cache_dir = config.CACHE_DIR
     report_dir = config.REPORT_DIR
 
-    verify_create(log_dir)
+    verify_create(cache_dir)
     verify_create(report_dir)
 
 
 def verify_create(dir):
     if not path.exists(dir):
-        os.mkdir(dir)
-    except OSError as ose:
-
+        try:
+            os.mkdir(dir)
+        except OSError as ose:
+            Logging.log_error("error_failed_create_directory", Logging.highlight(dir))
+        else:
+            Logging.log_info("info_creating_directory", Logging.highlight(path.abspath(dir)))
     else:
-        log_info(f"Created cache directory at {path.abspath(cache_dir)}")
+        Logging.log_info("info_using_directory", Logging.highlight(path.abspath(dir)))
 
 
 init()

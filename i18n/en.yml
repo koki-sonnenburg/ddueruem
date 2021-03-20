@@ -1,0 +1,31 @@
+en:
+  # error
+  error_failed_create_directory: Failed to create directory
+
+  # warning
+
+  # info
+  ## filesystem
+  info_creating_directory: Created directory at
+  info_using_directory: Using directory at
+
+  # cli
+  cli_file: The DIMACS/UVL file to read
+
+  cli--force-parser: Ignore file ending and parse with selected parser
+
+  cli--silent: Disable all output
+  cli--no-log: Disable log file creation
+  cli--no-cache: Disable cache creation
+
+  cli--buddy: Uses BuDDy to build the BDD.
+  cli--cudd: Uses CUDD to build the BDD.
+
+  cli--preorder: Enable preordering w/ the selected heuristic,
+  cli--dynorder: Enable dynamic reordering w/ the selected heuristic.
+  
+  cli--ignore-cached-order: Ignore cached variable orders
+  cli--ignore-cached-result: Ignore cached results
+
+  cli--install: Download and install the chosen libraries.
+  cli--clean-install: Ignores existing downloads, sources and shared libraries.

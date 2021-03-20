@@ -11,38 +11,6 @@ from termcolor import colored
 
 import config
 
-def blue(msg, bold = False, attrs = []):
-    if bold:
-        attrs.append("bold")
-
-    return colored(msg, "blue", attrs = attrs)
-
-def red(msg, bold = False, attrs = []):
-    if bold:
-        attrs.append("bold")
-    return colored(msg, "blue", attrs = attrs)
-
-def green(msg, bold = False, attrs = []):
-    if bold:
-        attrs.append("bold")
-
-    return colored(msg, "green", attrs = attrs)
-
-def log_error(msg, *msgs):    
-    print()
-    print(colored("[ERROR]", "red", "on_white", attrs = ["bold"]), msg, *msgs)
-    print()
-
-def log_info(msg = None, *msgs):
-    if msg is None:
-        print()
-        return
-
-    if config.verbose:
-        print(f"[{colored(timestamp(), 'blue')}]", msg, *msgs)
-
-def log_warning(msg, *msgs):
-    print(colored("[WARNING]", "yellow", attrs = ["bold"]), msg, *msgs)
 
 ### Download
 
@@ -88,6 +56,3 @@ def prepend_input_file_signature(filename_to_hash, filename_to_store):
         file.write(contents)
 
 ### Time
-
-def timestamp():
-    return datetime.now().strftime('%Y-%m-%d:%H-%M-%S')
