@@ -51,13 +51,15 @@ def verify_create(dir):
         except OSError as ose:
             Logging.log_error("error_create_directory_failed", Logging.highlight(dir))
         else:
-            Logging.log("info_create_directory", Logging.highlight(path.abspath(dir)))
+            pass
+            # Logging.log("info_create_directory", Logging.highlight(path.abspath(dir)))
     else:
-        Logging.log("info_use_directory", Logging.highlight(path.abspath(dir)))
+        pass
+        # Logging.log("info_use_directory", Logging.highlight(path.abspath(dir)))
 
 def cli():    
     parser = argparse.ArgumentParser(description=format("cli_desc"))
-    parser.add_argument("file", nargs = "?", help = format("cli_file"), default = None)
+    parser.add_argument("file", help = format("cli_file"))
 
     # Run Options
     parser.add_argument("--lib", help = format("cli--lib"), choices = config.LIBRARY_CHOICES, type = str.lower, default = config.LIB_DEFAULT)
@@ -79,6 +81,8 @@ def cli():
     args = parser.parse_args()
 
     init()
+
+#------------------------------------------------------------------------------#
 
 if __name__ == "__main__":
     cli()

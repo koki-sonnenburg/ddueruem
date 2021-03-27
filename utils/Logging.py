@@ -69,8 +69,8 @@ def init(filename, volatile_log_level = None, persistent_log_level = None):
         log_level_persistent = persistent_log_level
     
     logger = Logger(filename)
-    log_info("info_set_volatile_loglevel", highlight(log_level_volatile))
-    log_info("info_set_persistent_loglevel", highlight(log_level_persistent))
+    # log_info("info_set_volatile_loglevel", highlight(log_level_volatile))
+    # log_info("info_set_persistent_loglevel", highlight(log_level_persistent))
 
 def silence():
     global log_level_volatile, log_level_persistent

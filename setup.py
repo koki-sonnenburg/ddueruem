@@ -7,21 +7,10 @@ import argparse
 
 import config
 from ddueruem import init
-from adapters import BUDDY, CUDD
-import adapters.Adapter as Adapter
+import adapters.Adapters as Adapters
 import utils.Logging as Logging
 
 #------------------------------------------------------------------------------#
-
-def get_lib(lib):
-    if lib == "buddy":
-        return BUDDY
-    elif lib == "cudd":
-        return CUDD
-    else:
-        Logging.log_error("Unknown lib", Logging.highlight(lib))
-
-    return None
 
 def cli():    
     parser = argparse.ArgumentParser(description=format("cli_setup_desc"))
@@ -45,8 +34,8 @@ def cli():
         libs =  config.INSTALLABLE_LIBRARIES
 
     for lib in libs:
-        lib = get_lib(lib)        
-        lib.install(clean = args.clean)    
+        lib = Adapters.get_lib(lib)  
+        Adapters.install(lib, args.clean)    
 
 #------------------------------------------------------------------------------#
 
