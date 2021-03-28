@@ -13,6 +13,8 @@ import utils.Logging as Logging
 from . import Adapter_BUDDY as BUDDY
 from . import Adapter_CUDD as CUDD
 
+from config import DDUERUEM_VERSION
+
 def get_lib(stub):
 
     stub = stub.lower()
@@ -23,6 +25,13 @@ def get_lib(stub):
         return CUDD
     else:
         raise NotImplementedError(f"Library with stub \"{stub}\" is not hooked in.")
+
+def get_meta(lib):
+    return {
+        "ddueruem-version": DDUERUEM_VERSION,
+        "lib-name-stub":lib.stub,
+        "lib-name":lib.name
+    }
 
 def install(lib, clean = False):
 

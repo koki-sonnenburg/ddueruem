@@ -29,6 +29,9 @@ class Expression:
     def toDNF(self):
         pass
 
+    def get_meta(self):
+        return self.meta
+
 class CNF(Expression):
 
     def __str__(self):

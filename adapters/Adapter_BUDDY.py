@@ -1,5 +1,6 @@
 from ctypes import *
 
+import os
 import re
 import subprocess
 
@@ -28,6 +29,49 @@ requires_variable_advertisement = True
 
 def configure():
     subprocess.run(['./configure', configure_settings], cwd = sources_dir, stdout=subprocess.PIPE).stdout.decode('utf-8')
+
+def format2file(filename, meta = {}):        
+    with open(filename, "r") as file:
+        content = file.read()
+
+    lines = re.split("[\n\r]",content)
+
+    n_nodes, n_vars = re.split(r"\s+", lines[0].strip())
+    var2order = [int(x) for x in re.split(r"\s+", lines[1].strip())]
+
+    order = [0 for _ in range(0, len(var2order))]
+    for i,x in enumerate(var2order):
+        order[x] = i+1
+
+    nodes = {}
+    root = None
+
+    for line in lines[2:]:
+        m = re.match(r"(?P<id>\d+) (?P<var>\d+) (?P<low>\d+) (?P<high>\d+)", line)
+        if m:
+            nodes[int(m["id"])] = (int(m["var"]), int(m["low"]), int(m["high"]))
+            root = int(m["id"])
+
+    ids = sorted([x for x in nodes.keys()])
+
+    content = []
+    meta["order"] = ",".join([str(x) for x in order])
+
+    if meta:
+        for k, v in meta.items():
+            content.append(f"{k}:{v}")
+
+    content = sorted(content)
+
+    content.append("----")
+
+    for i in ids:
+        var, low, high = nodes[i]
+        content.append(f"{i} {var} 0:{low} 0:{high}")
+
+    with open(filename, "w") as file:
+        file.write(f"{os.linesep}".join(content))
+        file.write(os.linesep)
 
 class Manager(Adapter_Generic.Adapter_Generic):
 
@@ -100,11 +144,24 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
 #---- Utility -----------------------------------------------------------------#
 
+    def set_order(self, order):
+
+        print(order)
+        order_min = min(order)
+
+        if order_min > 0:
+            order = [x - order_min for x in order]   
+
+        arr = (c_uint * len(order))(*order)
+
+        self.buddy.bdd_setvarorder(arr)
+
     def delref_(self, obj):
         self.buddy.bdd_delref(obj)
 
-    def dump(self, bdd, filename, **kwargs):
+    def dump(self, bdd, filename, meta = {}, **kwargs):
         self.buddy.bdd_fnsave(c_char_p(filename.encode("utf-8")), bdd)
+        format2file(filename, meta = meta)
 
 #     def __enter__(self):
 #         buddy = verify_load_lib(shared_lib, hint_install)

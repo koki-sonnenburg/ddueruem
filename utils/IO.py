@@ -86,3 +86,16 @@ def format(msg, color = None, attrs = None):
             msg = colored(msg, color)
 
     return msg
+
+###
+
+def collect_meta(*args):
+
+    out = {
+        "ddueruem-version": config.DDUERUEM_VERSION
+    }
+
+    for x in args:
+        out.update(x.get_meta())
+
+    return out

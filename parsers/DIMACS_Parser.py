@@ -56,8 +56,8 @@ class DIMACS_Parser:
             print(f"[WARNING] Specified number of clauses ({nclauses}) differs from number of parsed ones ({len(clauses)}).")
 
         meta = {
-            "input_name": self.filename,
-            "input_hash": hash_hex(self.filename)
+            "input-name": self.filename,
+            "input-hash": hash_hex(self.filename)
         }
 
         return CNF(clauses, var_descs, meta)

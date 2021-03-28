@@ -1,3 +1,5 @@
+DDUERUEM_VERSION = "2021-03"
+
 LIB_DEFAULT     = "buddy"
 PARSER_DEFAULT  = "auto"
 SVO_DEFAULT     = None
