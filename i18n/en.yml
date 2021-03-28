@@ -17,16 +17,18 @@ en:
   cli_desc: A wrapper for BuDDy and CUDD.
   cli_file: the DIMACS/UVL file to read.
 
-  cli--force-parser: Ignore file ending and parse with selected parser.
+  cli--force-parser: ignore file ending and parse with selected parser.
 
   cli--silent: disable all output.
   cli--no-log: disable log file creation.
   cli--no-cache: disable cache creation.
 
-  cli--lib: select the BDD library to use
+  cli--lib: select the BDD library to use. (buddy)
+  cli--mode: select the aspects of the input to be analysed. (full) [UVL]
+  cli--parser: select the parser to use. (auto) 
 
-  cli--preorder: enable preordering w/ the selected heuristic.
-  cli--dynorder: enable dynamic reordering w/ the selected heuristic.
+  cli--preorder: select the heuristic for preordering. (off)
+  cli--dynorder: enable dynamic reordering w/ the selected heuristic. (lib-default)
   
   cli--ignore-cached-order: ignore cached variable orders.
   cli--ignore-cached-result: ignore cached results.

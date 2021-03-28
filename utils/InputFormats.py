@@ -61,6 +61,9 @@ class CNF(Expression):
     def get_no_variables(self):
         return len(self.var2desc)
 
+    def get_stub(self):
+        return "cnf"
+
 class DNF(Expression):
     pass
 

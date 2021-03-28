@@ -2,7 +2,8 @@ DDUERUEM_VERSION = "2021-03"
 
 LIB_DEFAULT     = "buddy"
 PARSER_DEFAULT  = "auto"
-SVO_DEFAULT     = None
+MODE_DEFAULT    = "full"
+SVO_DEFAULT     = "off"
 DVO_DEFAULT     = "lib-default"
 
 # Directories
@@ -11,11 +12,12 @@ LOG_DIR     = "log"
 REPORT_DIR  = "reports"
 
 # CLI choices
-PREORDER_CHOICES    = ["default", "force", "force-triage"]
-DYNORDER_CHOICES    = ["lib-default", "sift", "sift-conv"]
+PREORDER_CHOICES    = ["off", "force", "force-triage"]
+DYNORDER_CHOICES    = ["off", "lib-default", "sift", "sift-conv"]
 
 PARSER_CHOICES      = ["auto", "dimacs", "uvl"]
+MODE_CHOICES        = ["full", "only-ctcs", "only-fd"]
 
-LIBRARY_CHOICES         = ["default", "buddy", "cudd"]
+LIBRARY_CHOICES         = ["buddy", "cudd"]
 INSTALL_CHOICES         = ["all", "buddy", "cudd"]
 INSTALLABLE_LIBRARIES   = ["buddy", "cudd"]

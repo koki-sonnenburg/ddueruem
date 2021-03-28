@@ -8,6 +8,11 @@ from utils.IO import hash_hex
 #------------------------------------------------------------------------------#
 
 class DIMACS_Parser: 
+
+    @staticmethod
+    def name():
+        return "dimacs"
+
     def __enter__(self):
         return self
 

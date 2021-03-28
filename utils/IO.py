@@ -5,6 +5,7 @@ import hashlib
 import i18n
 
 import os
+from os import path
 
 import re
 import requests
@@ -78,9 +79,13 @@ def bulk_format(*msgs, color = None, attrs = None, return_type = str, str_sep = 
     else:
         raise TypeError("out must be list or str")
 
-def format(msg, color = None, attrs = None):
+def format(msg, color = None, bg = None, attrs = None):
     if color:
-        if attrs:
+        if bg and attrs:
+            msg = colored(msg, color, bg, attrs=attrs)
+        elif bg:
+            msg = colored(msg, color, bg)
+        elif attrs:
             msg = colored(msg, color, attrs=attrs)
         else:
             msg = colored(msg, color)
@@ -99,3 +104,13 @@ def collect_meta(*args):
         out.update(x.get_meta())
 
     return out
+
+# Move out of here
+def basename(file):    
+    fullpath = path.abspath(file)
+    basename = re.split(r"\.", re.split(r"/", fullpath)[-1])[0]
+
+    return basename
+
+def timestamp(sep = "", splitsep = ":"):
+    return datetime.now().strftime(f"%Y{sep}%m{sep}%d{splitsep}%H{sep}%M{sep}%S")

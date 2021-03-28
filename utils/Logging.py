@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 
-from .IO import format, bulk_format
+from .IO import format, bulk_format, timestamp
 
 logger = None
 
@@ -11,15 +11,12 @@ LL_WARNING = 1
 LL_ERROR = 0
 LL_OFF = -1
 
-log_level_volatile = LL_ALL
+log_level_volatile = LL_INFO
 log_level_persistent = LL_OFF
 
 
 def highlight(x):
     return f"$${x}$$"
-
-def timestamp(sep = "", splitsep = ":"):
-    return datetime.now().strftime(f"%Y{sep}%m{sep}%d{splitsep}%H{sep}%M{sep}%S")
 
 # logging
 
@@ -54,7 +51,7 @@ def log_error(*msgs, error_code = 1):
         logger.log(timestamp(), "[W]", bulk_format(*msgs))
 
     print()
-    print(format("ERROR", color = "red", attrs = ["bold", "on_white"]), bulk_format(*msgs, color = "red"))
+    print(format("ERROR", color = "red", bg = "on_white", attrs = ["bold"]), bulk_format(*msgs, color = "red"))
     print()
 
     exit(error_code)
