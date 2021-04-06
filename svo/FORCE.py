@@ -1,10 +1,35 @@
 from datetime import datetime, timedelta
 from random import shuffle
 
-from utils.Logging import log_info
+from utils.Logging import log
 
 def compute_default_order(cnf):
     return [x + 1 for x in range(0, cnf.get_no_variables())]
+
+
+class FORCE:
+
+    @staticmethod
+    def name():
+        return f"FORCE"
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def __init__(self, variant):
+        self.variant = variant
+
+    def run(self, expr):
+        if self.variant == "force":
+            return force(expr)
+        elif self.variant == "force-triage":
+            return force_triage(expr)
+        else:
+            raise NotImplementedError()
+
 
 ### FORCE (Aloul et al.)
 
@@ -15,11 +40,11 @@ def force(cnf, time_limit = 60, order = None):
         order = compute_default_order(cnf)
         shuffle(order)
 
-    log_info("[FORCE] Start")
-    log_info("--------------------------------")
+    log("[FORCE] Start")
+    log("--------------------------------")
     
     span = force_compute_span(clauses, order)
-    log_info(f"Span: {span}")
+    log(f"Span: {span}")
 
     now = datetime.now()
 
@@ -49,13 +74,13 @@ def force(cnf, time_limit = 60, order = None):
         order = [x[0] for x in tlocs]
 
         span = force_compute_span(clauses, order)
-        log_info(f"Span: {span}")
+        log(f"Span: {span}")
 
         if span_old == span:
             break;
 
-    log_info("--------------------------------")
-    log_info("[FORCE] End")
+    log("--------------------------------")
+    log("[FORCE] End")
     return (order, span)
 
 
@@ -72,7 +97,7 @@ def force_compute_span(clauses, order):
     for clause in clauses:
         lspan = 0
         
-        print(clause)
+        # print(clause)
 
         indizes = [order.index(abs(x)) for x in clause]
         lspan = max(indizes) - min(indizes)
@@ -98,7 +123,7 @@ def force_triage(cnf, n1 = 32):
 
         for i, t in enumerate(orders):
             (order, span) = t
-            log_info(f"Processing seed {i + 1}/{len(orders)}")
+            log(f"Processing seed {i + 1}/{len(orders)}")
             orders2.append(force(cnf, 15, order))
 
         orders = orders2

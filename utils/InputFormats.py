@@ -6,13 +6,6 @@ u8neg = u"\u00AC"
 u8and = u"\u2227"
 u8or = u"\u2228"
 
-class FM:
-    """Contains expressions representing the feature diagram and the cross-tree constraints"""
-
-    def __init__(self, expr_fd, expr_ctcs):
-        self.expr_fd = expr_fd
-        self.expr_ctcs = expr_ctcs
-
 class Expression:
     
     def __init__(self, clauses, var2desc = {}, meta = {}):
@@ -32,6 +25,9 @@ class Expression:
     def get_meta(self):
         return self.meta
 
+    def get_no_variables(self):
+        return len(self.var2desc)
+
 class CNF(Expression):
 
     def __str__(self):
@@ -48,7 +44,7 @@ class CNF(Expression):
             h = f" {u8or} ".join(h)
             out.append(f"({h})")
 
-        return f" {u8and} ".join(out)
+        return (f" {u8and} ".join(out)).strip()
 
     def verbose(self):        
         out = str(self)
@@ -58,9 +54,6 @@ class CNF(Expression):
 
         return out
 
-    def get_no_variables(self):
-        return len(self.var2desc)
-
     def get_stub(self):
         return "cnf"
 
@@ -68,4 +61,43 @@ class DNF(Expression):
     pass
 
 class AST(Expression):
-    pass
+    
+    def get_stub(self):
+        return "ast"
+
+def support(ast):
+
+    supp = set()
+
+    try:
+        _, childs = ast
+        for x in childs:
+            supp.update(support(x))
+    except TypeError:
+        supp.update([abs(ast)])
+
+    return supp
+
+
+class FM(Expression):
+    """Contains expressions representing the feature diagram and the cross-tree constraints"""
+
+    def get_stub(self):
+        return "fm"
+
+    def __init__(self, expr_fd, expr_ctcs = [], var2desc = {}, meta = {}):
+        self.expr_fd = expr_fd
+        self.expr_ctcs = expr_ctcs
+        self.var2desc = var2desc
+        self.meta = meta
+
+    def computer_erc(self):
+        supp = set()
+
+        for ast in self.expr_ctcs:
+            supp.update(support(ast))
+
+        return len(supp) / len(self.var2desc)
+
+
+

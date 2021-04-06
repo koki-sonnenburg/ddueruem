@@ -25,7 +25,7 @@ en:
 
   cli--lib: select the BDD library to use. (buddy)
   cli--mode: select the aspects of the input to be analysed. (full) [UVL]
-  cli--parser: select the parser to use. (auto) 
+  cli--parser: select the parser to use. (auto)
 
   cli--preorder: select the heuristic for preordering. (off)
   cli--dynorder: enable dynamic reordering w/ the selected heuristic. (lib-default)

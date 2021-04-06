@@ -135,4 +135,4 @@ constraints
 	featureStatisticsDatabase => featureTreeVisitor
 	featureTransaction => dummyFeatureLocking & featureDeleteDb & featureTruncateDb
 	featureTruncateDb => featureDeleteDb
-	featureVerifier => featureINCompressor & featureTreeVisitor
+	featureVerifier => !featureINCompressor & featureTreeVisitor

@@ -1,16 +1,17 @@
-import time
+from datetime import datetime
 
-from utils.IO import basename, timestamp
+from config import CACHE_DIR
+from utils.IO import basename, timestamp, format_runtime
 from .Adapters import get_lib, get_meta
-
+import utils.Logging as Logging
 
 class BDD:
 
     def __init__(self, lib):
+        self.bdd = None
         self.lib = get_lib(lib)
         self.mgr = self.lib.Manager()
         self.meta = get_meta(self.lib)
-
 
     def __enter__(self):
 
@@ -26,33 +27,48 @@ class BDD:
 
         if input.get_stub() == "cnf":
             self.fromCNF(input, order)
+        if input.get_stub() == "fm":
+            self.fromFM(input, order)
         else:
             raise NotImplementedError
 
-    def fromCNF(self, cnf, order = None):
+    def init(no_variables, meta = {}, order = None):
 
         lib = self.lib
         mgr = self.mgr
 
-        self.no_variables = cnf.get_no_variables()
-        self.meta.update(cnf.get_meta())
+        self.no_variables = no_variables
+        self.meta.update(meta)
 
         if lib.requires_variable_advertisement:
             mgr.set_no_variables(self.no_variables)
 
-        varmod = 0
+        self.varmod = 0
         if lib.has_zero_based_indizes:
-            varmod = 1
+            self.varmod = 1
 
         if order:
             mgr.set_order(order)
 
-#         self.set_dynorder(dynorder)
-#         buddy.bdd_setvarorder(arr)
+    def fromFM(self, fm, order = None):
 
-        time_start = time.time()
+        self.fromCNF(fm.expr_fd)
 
-        bdd = mgr.one_()
+        for ast in fm.expr_ctcs:
+            self.fromAST(ast)
+
+    def fromAST(self, ast, order = None):
+
+        bdd = self.bdd
+        lib = self.lib
+        mgr = self.mgr
+
+        if bdd is None:
+            self.init(cnf.get_no_variables(), cnf.get_meta(), order)
+            bdd = mgr.one_()
+
+        
+        time_start = datetime.now()
 
         for clause in cnf.clauses:
 
@@ -60,7 +76,7 @@ class BDD:
 
             for x in clause:
 
-                y = abs(x) - varmod
+                y = abs(x) - self.varmod
                 
                 if x < 0:
                     clause_bdd = mgr.or_(clause_bdd, mgr.nithvar_(y))
@@ -69,14 +85,61 @@ class BDD:
 
             bdd = mgr.and_(bdd, clause_bdd)
 
-        time_stop = time.time()
+        time_stop = datetime.now()
 
-        self.meta["lib-runtime"] = f"{time_stop - time_start} s"
+        if "lib-runtime" in self.meta:
+            self.meta["lib-runtime"].append(format_runtime(time_stop - time_start))
+        else:
+            self.meta["lib-runtime"] = [format_runtime(time_stop - time_start)]
+
+        self.bdd = bdd
+
+
+    def fromCNF(self, cnf, order = None):
+
+        bdd = self.bdd
+        lib = self.lib
+        mgr = self.mgr
+
+        if bdd is None:
+            self.init(cnf.get_no_variables(), cnf.get_meta(), order)
+            bdd = mgr.one_()
+
+#         self.set_dynorder(dynorder)
+#         buddy.bdd_setvarorder(arr)
+
+        time_start = datetime.now()
+
+        for clause in cnf.clauses:
+
+            clause_bdd = mgr.zero_()
+
+            for x in clause:
+
+                y = abs(x) - self.varmod
+                
+                if x < 0:
+                    clause_bdd = mgr.or_(clause_bdd, mgr.nithvar_(y))
+                else:
+                    clause_bdd = mgr.or_(clause_bdd, mgr.ithvar_(y))
+
+            bdd = mgr.and_(bdd, clause_bdd)
+
+        time_stop = datetime.now()
+
+        if "lib-runtime" in self.meta:
+            self.meta["lib-runtime"].append(format_runtime(time_stop - time_start))
+        else:
+            self.meta["lib-runtime"] = [format_runtime(time_stop - time_start)]
+
         self.bdd = bdd
 
     def dump(self, filename = None):
 
         if filename is None:
-            filename = f"{basename(self.meta['input-name'])}-{self.lib.stub}.bdd"
+            filename = f"{CACHE_DIR}/{basename(self.meta['input-name'])}-{self.lib.stub}.bdd"
+
+
+        Logging.log_info("Dumpfile:", Logging.highlight(filename))
 
         self.mgr.dump(self.bdd, filename, no_variables = self.no_variables, meta = self.meta)

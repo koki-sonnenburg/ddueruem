@@ -27,13 +27,13 @@ def log(*msgs):
     if log_level_volatile >= LL_ALL:
         print(bulk_format(*msgs, color = "green"))
 
-def log_info(*msgs):
+def log_info(*msgs, sep = " "):
 
     if log_level_persistent >= LL_INFO and logger:
         logger.log(timestamp(), "[I]", bulk_format(*msgs))
 
     if log_level_volatile >= LL_INFO:
-        print(bulk_format(*msgs, color = "blue"))
+        print(bulk_format(*msgs, color = "blue", str_sep = sep))
 
 
 def log_warning(*msgs):

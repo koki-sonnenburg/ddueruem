@@ -92,6 +92,12 @@ def format(msg, color = None, bg = None, attrs = None):
 
     return msg
 
+def format_runtime(runtime):
+
+    #TODO: Implement nicer format?
+
+    return runtime
+
 ###
 
 def collect_meta(*args):

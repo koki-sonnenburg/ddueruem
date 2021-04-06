@@ -21,6 +21,7 @@ import adapters.Adapters as Adapters
 from adapters.BDD import BDD
 from parsers.DIMACS_Parser import DIMACS_Parser
 from parsers.UVL_Parser import UVL_Parser
+from svo import SVOutils as SVO
 
 #------------------------------------------------------------------------------#
 
@@ -118,8 +119,7 @@ def cli():
 
     Logging.log_info("Input:", Logging.highlight(input_file))
 
-    #TODO: Look for existing results
-    #TODO: Look for existing caches
+    #TODO: Look for existing results -> SKIP Parsing, Preordering, Construction, Analyses
 
     parser = select_parser(input_file, args.parser)
     Logging.log_info("Parser:", Logging.highlight(parser.name()))
@@ -127,14 +127,31 @@ def cli():
     if args.mode != "full" and parser.name() == "dimacs":
         Logging.log_error("dimacs does not segregate feature diagram and cross-tree constraints.")
 
+    if args.preorder != "off" and parser.name() == "uvl":
+        Logging.log_error("preordering is currently not supported for ASTs.")
+
     with parser(input_file) as parser:
         expr = parser.parse()
 
     Logging.log_info("Expression:", Logging.highlight(expr))
 
+    #TODO: Look for existing cache -> SKIP Preordering, Construction
+
+    order = None
+
+    if args.preorder != "off":
+        preorder = SVO.select_svo(args.preorder)
+        Logging.log_info("SVO:", Logging.highlight(preorder.name()))
+        with preorder(args.preorder) as svo:
+            order, _ = svo.run(expr)
+
+    if args.dynorder != "off":
+        Logging.log_info("DVO:", Logging.highlight(args.dynorder))
+        raise NotImplementedError()
+
     with BDD(args.lib) as bdd:
-        Logging.log_info("Library", Logging.highlight(bdd.lib.name))
-        bdd.buildFrom(expr)
+        Logging.log_info("Library:", Logging.highlight(bdd.lib.name))
+        bdd.buildFrom(expr, order)
         bdd.dump()
 #------------------------------------------------------------------------------#
 

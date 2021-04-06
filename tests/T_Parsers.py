@@ -8,8 +8,7 @@ with DIMACS_Parser("examples/sandwich.dimacs") as parser:
 test1 = "(Sandwich) ∧ (Vegetables ∨ ¬Cucumber) ∧ (Vegetables ∨ ¬Tomatoes) ∧ (Vegetables ∨ ¬Lettuce) ∧ (Cheese ∨ ¬Gouda) ∧ (Cheese ∨ ¬Cheddar) ∧ (Cheese ∨ ¬Cream) ∧ (Sandwich0 ∨ ¬SandwichSandwich) ∧ (Sandwich0 ∨ ¬SandwichVegetables) ∧ (Sandwich0 ∨ ¬SandwichCucumber) ∧ (SandwichSandwich ∨ SandwichVegetables ∨ SandwichCucumber ∨ ¬Sandwich0) ∧ (¬SandwichSandwich ∨ ¬SandwichVegetables) ∧ (¬SandwichSandwich ∨ ¬SandwichCucumber) ∧ (¬SandwichVegetables ∨ ¬SandwichCucumber) ∧ (SandwichTomatoes ∨ ¬SandwichLettuce) ∧ (SandwichTomatoes ∨ ¬SandwichCheese) ∧ (SandwichTomatoes ∨ ¬SandwichGouda) ∧ (SandwichLettuce ∨ SandwichCheese ∨ SandwichGouda ∨ ¬SandwichTomatoes) ∧ (Sandwich ∨ ¬Sandwich0) ∧ (Sandwich ∨ ¬Cheese) ∧ (Sandwich ∨ ¬SandwichTomatoes) ∧ (Sandwich ∨ ¬Vegetables) ∧ (Sandwich0 ∨ ¬Sandwich) ∧ (Gouda ∨ ¬SandwichCheddar) ∧ (Gouda ∨ ¬SandwichCream) ∧ (SandwichCheddar ∨ SandwichCream ∨ ¬Gouda) ∧ (¬SandwichCheddar ∨ ¬SandwichCream)"
 assert cnf.verbose() == test1
 
-with UVL_Parser("examples/sandwich.uvl") as parser:
-    fm = parser.parse2fm()
+with UVL_Parser("examples/cerf.uvl") as parser:
+    fm = parser.parse()
 
-print(cnf)
-print(fm.expr_fd)
+print(fm.computer_erc())
