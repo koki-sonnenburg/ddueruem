@@ -7,7 +7,7 @@ SVO_DEFAULT     = "off"
 DVO_DEFAULT     = "lib-default"
 
 # Directories
-CACHE_DIR   = "cache"
+CACHE_DIR   = "_cache"
 LOG_DIR     = "log"
 REPORT_DIR  = "reports"
 

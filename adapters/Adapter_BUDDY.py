@@ -55,6 +55,8 @@ def format2file(filename, meta = {}):
     ids = sorted([x for x in nodes.keys()])
 
     content = []
+    meta["n_nodes"] = n_nodes
+    meta["root"] = f"0:{root}"
     meta["order"] = ",".join([str(x) for x in order])
 
     if meta:
@@ -80,9 +82,9 @@ class Manager(Adapter_Generic.Adapter_Generic):
     def init(self):
         buddy = self.load_lib(shared_lib, hint_install)
 
-        buddy.bdd_init(1<<20, 10000000)
-        # buddy.bdd_setminfreenodes(33)
-        # buddy.bdd_setmaxincrease(c_int(self.increase))
+        buddy.bdd_init(100000, 100000)
+        buddy.bdd_setminfreenodes(33)
+        buddy.bdd_setmaxincrease(c_int(100000))
 
         self.buddy = buddy
 
@@ -144,9 +146,11 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
 #---- Utility -----------------------------------------------------------------#
 
+    def reorder(self):
+        self.buddy.bdd_reorder(4)
+
     def set_order(self, order):
 
-        print(order)
         order_min = min(order)
 
         if order_min > 0:
@@ -154,7 +158,12 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
         arr = (c_uint * len(order))(*order)
 
+        print(len(order))
+
+        self.buddy.bdd_autoreorder(4)
         self.buddy.bdd_setvarorder(arr)
+
+        print("order set")
 
     def delref_(self, obj):
         self.buddy.bdd_delref(obj)

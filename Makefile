@@ -2,7 +2,7 @@ BUDDY_SRC 	= cache/buddy-2.4/src
 CUDD_SRC 	= cache/cudd-3.0.0
 
 CC 			= gcc
-CFLAGS 		= -fPIC -mtune=native -DHAVE_IEEE_754 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -std=c99 -O3
+CFLAGS 		= -DSPECIALIZE_RELPROD -DSPECIALIZE_AND -DSPECIALIZE_OR -DSMALL_NODES -O3 -fomit-frame-pointer -fPIC $(EXTRA_CFLAGS)
 
 INCLUDES_CUDD 	= 	-I/usr/include \
 					-I$(CUDD_SRC) -I$(CUDD_SRC)/cudd -I$(CUDD_SRC)/epd -I$(CUDD_SRC)/mtr -I$(CUDD_SRC)/st -I$(CUDD_SRC)/util

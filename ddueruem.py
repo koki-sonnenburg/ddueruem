@@ -18,12 +18,41 @@ from utils.IO import bulk_format
 import utils.Logging as Logging
 
 import adapters.Adapters as Adapters
+import caching.Caching as Caching
+
 from adapters.BDD import BDD
 from parsers.DIMACS_Parser import DIMACS_Parser
 from parsers.UVL_Parser import UVL_Parser
 from svo import SVOutils as SVO
 
 #------------------------------------------------------------------------------#
+
+def parsing(input_file, flag_parser, flag_mode):
+
+    parser = select_parser(input_file, flag_parser)
+
+    Logging.log_info("Parser:", Logging.highlight(parser.name()))
+
+    if flag_mode != "full" and parser.name() == "dimacs":
+        Logging.log_error("dimacs does not segregate feature diagram and cross-tree constraints.")
+
+    with parser(input_file) as parser:
+        expr = parser.parse()
+
+    return expr
+
+def ordering(expr, flag_preorder):
+
+    order = SVO.compute_default_order(expr)
+
+    if flag_preorder != "off":
+        preorder = SVO.select_svo(args.preorder)
+        Logging.log_info("SVO:", Logging.highlight(preorder.name()))
+        with preorder(args.preorder) as svo:
+            order = svo.run(expr, order)
+            expr.clauses = svo.sort_clauses_by_span(expr.clauses, order)
+
+    return order
 
 def init(root_script = __file__, silent = False):
 
@@ -107,7 +136,7 @@ def cli():
 
     # Caching Toggles    
     parser.add_argument("--ignore-cached-order", help = bulk_format("cli--ignore-cached-order"), dest = "use_cached_order", action = "store_false", default = True)
-    parser.add_argument("--ignore-cached-results", help = bulk_format("cli--ignore-cached-result"), dest = "use_cached_results", action = "store_false", default = True)
+    parser.add_argument("--ignore-cached-artifacts", help = bulk_format("cli--ignore-cached-artifacts"), dest = "use_cached_artifacts", action = "store_false", default = True)
 
     args = parser.parse_args()
 
@@ -119,40 +148,31 @@ def cli():
 
     Logging.log_info("Input:", Logging.highlight(input_file))
 
-    #TODO: Look for existing results -> SKIP Parsing, Preordering, Construction, Analyses
+    if args.use_cached_artifacts and Caching.artifact_cache_exists(input_file, args.lib):
+        Logging.log_info("Using cached BDD")
+        # bdd = fromCache
 
-    parser = select_parser(input_file, args.parser)
-    Logging.log_info("Parser:", Logging.highlight(parser.name()))
+    else:
+        expr = parsing(input_file, args.parser, args.mode)
 
-    if args.mode != "full" and parser.name() == "dimacs":
-        Logging.log_error("dimacs does not segregate feature diagram and cross-tree constraints.")
+        Logging.log_info("Expression:", Logging.highlight(expr))
 
-    if args.preorder != "off" and parser.name() == "uvl":
-        Logging.log_error("preordering is currently not supported for ASTs.")
+        if args.use_cached_order:
 
-    with parser(input_file) as parser:
-        expr = parser.parse()
+            Logging.log_info("Using cached variable order")
+            # order = fromCache
+        else:
+            order = ordering()
 
-    Logging.log_info("Expression:", Logging.highlight(expr))
-
-    #TODO: Look for existing cache -> SKIP Preordering, Construction
-
-    order = None
-
-    if args.preorder != "off":
-        preorder = SVO.select_svo(args.preorder)
-        Logging.log_info("SVO:", Logging.highlight(preorder.name()))
-        with preorder(args.preorder) as svo:
-            order, _ = svo.run(expr)
-
-    if args.dynorder != "off":
-        Logging.log_info("DVO:", Logging.highlight(args.dynorder))
-        raise NotImplementedError()
+    #DVO
+    Logging.log_info("DVO:", Logging.highlight(args.dynorder))
 
     with BDD(args.lib) as bdd:
         Logging.log_info("Library:", Logging.highlight(bdd.lib.name))
+        bdd.set_dvo(args.dynorder)
         bdd.buildFrom(expr, order)
-        bdd.dump()
+        filename_bdd = bdd.dump()
+    
 #------------------------------------------------------------------------------#
 
 if __name__ == "__main__":

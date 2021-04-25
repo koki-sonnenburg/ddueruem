@@ -94,9 +94,7 @@ def format(msg, color = None, bg = None, attrs = None):
 
 def format_runtime(runtime):
 
-    #TODO: Implement nicer format?
-
-    return runtime
+    return runtime.total_seconds()
 
 ###
 

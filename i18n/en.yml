@@ -31,7 +31,7 @@ en:
   cli--dynorder: enable dynamic reordering w/ the selected heuristic. (lib-default)
   
   cli--ignore-cached-order: ignore cached variable orders.
-  cli--ignore-cached-result: ignore cached results.
+  cli--ignore-cached-artifacts: ignore cached BDDs.
 
   # setup cli
 

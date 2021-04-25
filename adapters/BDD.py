@@ -27,13 +27,12 @@ class BDD:
 
         if input.get_stub() == "cnf":
             self.fromCNF(input, order)
-        if input.get_stub() == "fm":
+        elif input.get_stub() == "fm":
             self.fromFM(input, order)
         else:
-            raise NotImplementedError
+            raise NotImplementedError(f"\"{input.get_stub()}\"")
 
-    def init(no_variables, meta = {}, order = None):
-
+    def init(self, no_variables, meta = {}, order = None):
         lib = self.lib
         mgr = self.mgr
 
@@ -50,50 +49,6 @@ class BDD:
         if order:
             mgr.set_order(order)
 
-    def fromFM(self, fm, order = None):
-
-        self.fromCNF(fm.expr_fd)
-
-        for ast in fm.expr_ctcs:
-            self.fromAST(ast)
-
-    def fromAST(self, ast, order = None):
-
-        bdd = self.bdd
-        lib = self.lib
-        mgr = self.mgr
-
-        if bdd is None:
-            self.init(cnf.get_no_variables(), cnf.get_meta(), order)
-            bdd = mgr.one_()
-
-        
-        time_start = datetime.now()
-
-        for clause in cnf.clauses:
-
-            clause_bdd = mgr.zero_()
-
-            for x in clause:
-
-                y = abs(x) - self.varmod
-                
-                if x < 0:
-                    clause_bdd = mgr.or_(clause_bdd, mgr.nithvar_(y))
-                else:
-                    clause_bdd = mgr.or_(clause_bdd, mgr.ithvar_(y))
-
-            bdd = mgr.and_(bdd, clause_bdd)
-
-        time_stop = datetime.now()
-
-        if "lib-runtime" in self.meta:
-            self.meta["lib-runtime"].append(format_runtime(time_stop - time_start))
-        else:
-            self.meta["lib-runtime"] = [format_runtime(time_stop - time_start)]
-
-        self.bdd = bdd
-
 
     def fromCNF(self, cnf, order = None):
 
@@ -105,12 +60,11 @@ class BDD:
             self.init(cnf.get_no_variables(), cnf.get_meta(), order)
             bdd = mgr.one_()
 
-#         self.set_dynorder(dynorder)
-#         buddy.bdd_setvarorder(arr)
-
         time_start = datetime.now()
 
-        for clause in cnf.clauses:
+        for i, clause in enumerate(cnf.clauses):
+
+            Logging.log_info(f"{i + 1} / {len(cnf.clauses)} ({100*(i+1)/len(cnf.clauses):.1f}%)")
 
             clause_bdd = mgr.zero_()
 
@@ -137,9 +91,55 @@ class BDD:
     def dump(self, filename = None):
 
         if filename is None:
-            filename = f"{CACHE_DIR}/{basename(self.meta['input-name'])}-{self.lib.stub}.bdd"
-
+            filename = Caching.get_artifact_cache_filename(self.meta['input-name'], self.lib.stub)
 
         Logging.log_info("Dumpfile:", Logging.highlight(filename))
 
         self.mgr.dump(self.bdd, filename, no_variables = self.no_variables, meta = self.meta)
+
+        return filename
+
+
+    # def fromFM(self, fm, order = None):
+
+    #     self.fromCNF(fm.expr_fd)
+
+    #     for ast in fm.expr_ctcs:
+    #         self.fromAST(ast)
+
+    # def fromAST(self, ast, order = None):
+
+    #     bdd = self.bdd
+    #     lib = self.lib
+    #     mgr = self.mgr
+
+    #     if bdd is None:
+    #         self.init(cnf.get_no_variables(), cnf.get_meta(), order)
+    #         bdd = mgr.one_()
+
+        
+    #     time_start = datetime.now()
+
+    #     for clause in cnf.clauses:
+
+    #         clause_bdd = mgr.zero_()
+
+    #         for x in clause:
+
+    #             y = abs(x) - self.varmod
+                
+    #             if x < 0:
+    #                 clause_bdd = mgr.or_(clause_bdd, mgr.nithvar_(y))
+    #             else:
+    #                 clause_bdd = mgr.or_(clause_bdd, mgr.ithvar_(y))
+
+    #         bdd = mgr.and_(bdd, clause_bdd)
+
+    #     time_stop = datetime.now()
+
+    #     if "lib-runtime" in self.meta:
+    #         self.meta["lib-runtime"].append(format_runtime(time_stop - time_start))
+    #     else:
+    #         self.meta["lib-runtime"] = [format_runtime(time_stop - time_start)]
+
+    #     self.bdd = bdd

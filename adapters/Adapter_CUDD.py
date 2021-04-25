@@ -62,6 +62,8 @@ def format2file(filename, meta = {}, order = []):
         root = int(root, 16)
 
     content = []
+    meta["n_nodes"] = n_nodes
+    meta["root"] = f"{root_ce}:{root}"
     meta["order"] = ",".join([str(x) for x in order])
 
     for k, v in meta.items():
@@ -162,7 +164,8 @@ class Manager(Adapter_Generic.Adapter_Generic):
     def init(self):
         self.cudd = self.load_lib(shared_lib, hint_install)
         self._init = declare(self.cudd.Cudd_Init, [c_uint, c_uint, c_uint, c_uint, c_ulong], POINTER(DdManager))
-        self.mgr = self._init(0,0, 256, 1<<20, 0)
+        self.mgr = self._init(0, 0, 256, 262144, 0)
+        self.enable_dynorder()
 
         return self
 
@@ -325,7 +328,6 @@ class Manager(Adapter_Generic.Adapter_Generic):
         if not hasattr(self, "_setorder"):
             self._setorder = declare(self.cudd.Cudd_ShuffleHeap, [POINTER(DdManager), POINTER(c_uint)])
 
-        print(order)
         order_min = min(order)
 
         if order_min > 0:
@@ -333,3 +335,10 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
         arr = (c_uint * len(order))(*order)
         self._setorder(self.mgr, arr)
+
+    def enable_dynorder(self):
+
+        if not hasattr(self, "_enable_dynorder"):
+            self._enable_dynorder = declare(self.cudd.Cudd_AutodynEnable, [POINTER(DdManager), c_int])
+
+        self._enable_dynorder(self.mgr, 4)

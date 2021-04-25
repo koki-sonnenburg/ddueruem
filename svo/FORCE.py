@@ -1,11 +1,7 @@
 from datetime import datetime, timedelta
 from random import shuffle
-
+from copy import copy
 from utils.Logging import log
-
-def compute_default_order(cnf):
-    return [x + 1 for x in range(0, cnf.get_no_variables())]
-
 
 class FORCE:
 
@@ -22,23 +18,31 @@ class FORCE:
     def __init__(self, variant):
         self.variant = variant
 
-    def run(self, expr):
+    def run(self, expr, order):
         if self.variant == "force":
-            return force(expr)
+            order, _ = force(expr, order = order)
         elif self.variant == "force-triage":
-            return force_triage(expr)
+            order, _ = force_triage(expr, order = order)
         else:
             raise NotImplementedError()
 
+        return order
+
+    def sort_clauses_by_span(self, clauses, order):
+        
+        spans = []
+
+        for clause in clauses:
+            spans.append((clause, force_compute_span([clause], order)))
+
+        spans = sorted(spans, key = lambda x : x[1])
+
+        return [x for x, _ in spans]
 
 ### FORCE (Aloul et al.)
 
 def force(cnf, time_limit = 60, order = None):
     clauses = cnf.clauses
-
-    if order is None:
-        order = compute_default_order(cnf)
-        shuffle(order)
 
     log("[FORCE] Start")
     log("--------------------------------")
@@ -68,13 +72,13 @@ def force(cnf, time_limit = 60, order = None):
             center, n = value
             tlocs.append((key, center / n))
 
-
         tlocs = sorted(tlocs, key = lambda x: x[1])
 
         order = [x[0] for x in tlocs]
 
         span = force_compute_span(clauses, order)
         log(f"Span: {span}")
+
 
         if span_old == span:
             break;
@@ -96,8 +100,6 @@ def force_compute_span(clauses, order):
     span = []
     for clause in clauses:
         lspan = 0
-        
-        # print(clause)
 
         indizes = [order.index(abs(x)) for x in clause]
         lspan = max(indizes) - min(indizes)
@@ -106,13 +108,15 @@ def force_compute_span(clauses, order):
 
     return sum(span)
 
-def force_triage(cnf, n1 = 32):
+def force_triage(cnf, n1 = 8, order = None):
 
     orders = []
 
     for i in range(0, n1):
-        log_info(f"Seeding ({i + 1}/{n1})")
-        orders.append(force(cnf, 30))
+        log(f"Seeding ({i + 1}/{n1})")
+        seed = copy(order)
+        shuffle(seed)
+        orders.append(force(cnf, 120, seed))
 
     while len(orders) > 1:
 
@@ -124,19 +128,8 @@ def force_triage(cnf, n1 = 32):
         for i, t in enumerate(orders):
             (order, span) = t
             log(f"Processing seed {i + 1}/{len(orders)}")
-            orders2.append(force(cnf, 15, order))
+            orders2.append(force(cnf, 30, order))
 
         orders = orders2
 
     return orders[0]
-
-def sort_clauses_by_span(clauses, order):
-    
-    spans = []
-
-    for clause in clauses:
-        spans.append((clause, force_compute_span([clause], order) / (len(clause))))
-
-    spans = sorted(spans, key = lambda x : x[1])
-
-    return [x for x, _ in spans]

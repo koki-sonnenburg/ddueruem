@@ -2,6 +2,8 @@ import re
 
 #------------------------------------------------------------------------------#
 
+from data.AST import Node
+
 from utils.InputFormats import FM, CNF
 from utils.IO import hash_hex
 
@@ -14,8 +16,8 @@ tokenizer_specs = [
     ("AND", r"[&]"),
     ("OR", r"[|]"),
     ("IMP", r"=>"),
-    ("EQV", r"<=>"),
-    ("VAR", r"\w+"),
+    ("EQV", r"\<=\>"),
+    ("VAR", r"[\w/+]+"),
     ("WSP", r"\s"),
     ("ERR", r".+")
 ]
@@ -29,7 +31,7 @@ def parse_features_rec(lines, index):
 
     children_type = None
 
-    m = re.match(r"(?P<feature>\w+)(\s+(?P<modifier>[{}\w]+))?", name)
+    m = re.match(r"(?P<feature>[\w/+]+)(\s+(?P<modifier>[{}\w]+))?", name)
 
     if not m:
         raise ValueError(f"Malformed entry ({name})")
@@ -310,6 +312,14 @@ def expr2ast(string, feature2id):
 def parse_ctcs(lines, index, feature2id):
     lines = lines[index:]
 
+    nconstraints = 0
+    for line in lines:
+        d, _ = line
+        if d > 0:
+            nconstraints += 1
+
+    print(f"#CTCs:\t{nconstraints}")
+
     out = []
 
     for depth, line in lines:
@@ -370,5 +380,3 @@ class UVL_Parser:
         }
 
         return FM(CNF(expr_fd), expr_ctcs, id2feature, meta)
-
-
