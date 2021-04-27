@@ -14,7 +14,6 @@ LL_OFF = -1
 log_level_volatile = LL_INFO
 log_level_persistent = LL_OFF
 
-
 def highlight(x):
     return f"$${x}$$"
 

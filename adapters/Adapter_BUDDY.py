@@ -7,6 +7,8 @@ import subprocess
 from . import Adapter_Generic
 from config import CACHE_DIR
 
+import utils.Logging as Logging
+
 name        = "BuDDy 2.4"
 stub        = "buddy"
 url         = "https://sourceforge.net/projects/buddy/files/buddy/BuDDy%202.4/buddy-2.4.tar.gz/download"
@@ -19,13 +21,24 @@ configure_settings = "CFLAGS=-fPIC -std=c99"
 
 hint_install = "--install buddy"
 
-reordering_algorithms = {
-    "sift": 3,
-    "sift-conv": 4
-}
-
 has_zero_based_indizes = True
 requires_variable_advertisement = True
+
+dvo_options = {    
+    "off": 0,
+    "lib-default": 4,
+    #
+    "win2": 1,
+    "win2-conv": 2,
+    #
+    "sift": 3,
+    "sift-conv": 4,
+    #
+    "win3": 5,
+    "win3-conv": 6,
+    #
+    "random": 7,
+}
 
 def configure():
     subprocess.run(['./configure', configure_settings], cwd = sources_dir, stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -88,6 +101,9 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
         self.buddy = buddy
 
+        # Enable DVO
+        self.set_dvo("lib-default")
+
     def exit(self):
         self.buddy.bdd_done()
 
@@ -147,7 +163,22 @@ class Manager(Adapter_Generic.Adapter_Generic):
 #---- Utility -----------------------------------------------------------------#
 
     def reorder(self):
-        self.buddy.bdd_reorder(4)
+        if self.dvo:
+            self.buddy.bdd_reorder(dvo_options[self.dvo])
+        else:
+            self.buddy.bdd_reorder(dvo_options["lib-default"])
+
+    def set_dvo(self, dvo_stub):
+
+        if dvo_stub in dvo_options:
+            self.dvo = dvo_stub
+            Logging.log_info(f"[{name}] Enabled DVO ({dvo_stub})")
+        else:
+            Logging.log_warning(f"Method {dvo_stub} not supported by {name}")
+            self.dvo = None
+        
+    def get_dvo(self):
+        return self.dvo
 
     def set_order(self, order):
 
@@ -158,12 +189,7 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
         arr = (c_uint * len(order))(*order)
 
-        print(len(order))
-
-        self.buddy.bdd_autoreorder(4)
         self.buddy.bdd_setvarorder(arr)
-
-        print("order set")
 
     def delref_(self, obj):
         self.buddy.bdd_delref(obj)

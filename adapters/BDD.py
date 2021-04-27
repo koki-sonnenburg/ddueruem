@@ -1,8 +1,9 @@
 from datetime import datetime
 
-from config import CACHE_DIR
 from utils.IO import basename, timestamp, format_runtime
 from .Adapters import get_lib, get_meta
+
+import caching.Caching as Caching
 import utils.Logging as Logging
 
 class BDD:
@@ -49,6 +50,15 @@ class BDD:
         if order:
             mgr.set_order(order)
 
+    def set_dvo(self, dvo_stub):
+        if self.mgr is None:
+            Logging.log_warning("BDD manager not initialized, not setting DVO.")
+            return
+
+        self.mgr.set_dvo(dvo_stub)
+
+    def get_dvo(self):
+        return self.mgr.get_dvo()
 
     def fromCNF(self, cnf, order = None):
 
@@ -81,17 +91,13 @@ class BDD:
 
         time_stop = datetime.now()
 
-        if "lib-runtime" in self.meta:
-            self.meta["lib-runtime"].append(format_runtime(time_stop - time_start))
-        else:
-            self.meta["lib-runtime"] = [format_runtime(time_stop - time_start)]
-
+        self.meta["lib-runtime"] = format_runtime(time_stop - time_start)
         self.bdd = bdd
 
     def dump(self, filename = None):
 
         if filename is None:
-            filename = Caching.get_artifact_cache_filename(self.meta['input-name'], self.lib.stub)
+            filename = Caching.get_artifact_cache(self.meta['input-name'], self.lib.stub)
 
         Logging.log_info("Dumpfile:", Logging.highlight(filename))
 

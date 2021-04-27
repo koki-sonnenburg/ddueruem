@@ -1,15 +1,16 @@
-BUDDY_SRC 	= cache/buddy-2.4/src
-CUDD_SRC 	= cache/cudd-3.0.0
+BUDDY_SRC 	= _cache/buddy-2.4/src
+CUDD_SRC 	= _cache/cudd-3.0.0
 
 CC 			= gcc
 CFLAGS 		= -DSPECIALIZE_RELPROD -DSPECIALIZE_AND -DSPECIALIZE_OR -DSMALL_NODES -O3 -fomit-frame-pointer -fPIC $(EXTRA_CFLAGS)
 
-INCLUDES_CUDD 	= 	-I/usr/include \
+INCLUDES_CUDD 	= -I/usr/include \
 					-I$(CUDD_SRC) -I$(CUDD_SRC)/cudd -I$(CUDD_SRC)/epd -I$(CUDD_SRC)/mtr -I$(CUDD_SRC)/st -I$(CUDD_SRC)/util
 
-INCLUDES_BUDDY	= 	-I$(BUDDY_SRC) -I$(BUDDY_SRC)/..
+INCLUDES_BUDDY	= -I$(BUDDY_SRC) -I$(BUDDY_SRC)/..
 
 BUDDY_DLL_NAME 	= libbuddy.so
+
 BUDDY_SRCS = $(BUDDY_SRC)/bddio.c $(BUDDY_SRC)/bddop.c $(BUDDY_SRC)/bvec.c \
 	$(BUDDY_SRC)/cache.c $(BUDDY_SRC)/fdd.c $(BUDDY_SRC)/imatrix.c \
 	$(BUDDY_SRC)/kernel.c $(BUDDY_SRC)/pairs.c $(BUDDY_SRC)/prime.c \

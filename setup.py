@@ -7,16 +7,15 @@ import argparse
 
 import config
 from ddueruem import init
-import adapters.Adapters as Adapters
 import utils.Logging as Logging
 
 #------------------------------------------------------------------------------#
 
-def cli():    
-    parser = argparse.ArgumentParser(description=format("cli_setup_desc"))
+def cli():      
+    parser = argparse.ArgumentParser()
     
     # IO Toggles
-    parser.add_argument("--silent", help = format("cli--silent"), dest = "silent", action = "store_true", default = False)
+    parser.add_argument("--a", help = format("cli--silent"), dest = "silent", action = "store_true", default = False)
     parser.add_argument("--clean", help = format("cli_setup--clean"), dest = "clean", action = "store_true", default = False)
 
     # Install Options
@@ -35,7 +34,7 @@ def cli():
 
     for lib in libs:
         lib = Adapters.get_lib(lib)  
-        Adapters.install(lib, args.clean)    
+        Adapters.install(lib, args.clean)   
 
 #------------------------------------------------------------------------------#
 

@@ -140,8 +140,6 @@ def cli():
 
     args = parser.parse_args()
 
-    pprint(args)
-
     init()
 
     input_file = args.file
@@ -151,28 +149,25 @@ def cli():
     if args.use_cached_artifacts and Caching.artifact_cache_exists(input_file, args.lib):
         Logging.log_info("Using cached BDD")
         # bdd = fromCache
-
     else:
         expr = parsing(input_file, args.parser, args.mode)
-
         Logging.log_info("Expression:", Logging.highlight(expr))
 
-        if args.use_cached_order:
-
+        if args.use_cached_order and Caching.order_cache_exists(input_file, args.preorder):
             Logging.log_info("Using cached variable order")
             # order = fromCache
         else:
-            order = ordering()
-
-    #DVO
-    Logging.log_info("DVO:", Logging.highlight(args.dynorder))
+            order = ordering(expr, args.preorder)
 
     with BDD(args.lib) as bdd:
         Logging.log_info("Library:", Logging.highlight(bdd.lib.name))
+
         bdd.set_dvo(args.dynorder)
+        Logging.log_info("DVO:", Logging.highlight(bdd.get_dvo()))
+
         bdd.buildFrom(expr, order)
         filename_bdd = bdd.dump()
-    
+
 #------------------------------------------------------------------------------#
 
 if __name__ == "__main__":
