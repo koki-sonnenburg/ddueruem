@@ -15,7 +15,7 @@ def cli():
     parser = argparse.ArgumentParser()
     
     # IO Toggles
-    parser.add_argument("--a", help = format("cli--silent"), dest = "silent", action = "store_true", default = False)
+    parser.add_argument("--silent", help = format("cli--silent"), dest = "silent", action = "store_true", default = False)
     parser.add_argument("--clean", help = format("cli_setup--clean"), dest = "clean", action = "store_true", default = False)
 
     # Install Options
