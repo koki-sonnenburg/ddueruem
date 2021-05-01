@@ -165,7 +165,7 @@ class Manager(Adapter_Generic.Adapter_Generic):
         self.cudd = self.load_lib(shared_lib, hint_install)
         self._init = declare(self.cudd.Cudd_Init, [c_uint, c_uint, c_uint, c_uint, c_ulong], POINTER(DdManager))
         self.mgr = self._init(0, 0, 256, 262144, 0)
-        self.enable_dynorder()
+        self.set_dvo()
 
         return self
 
@@ -336,9 +336,12 @@ class Manager(Adapter_Generic.Adapter_Generic):
         arr = (c_uint * len(order))(*order)
         self._setorder(self.mgr, arr)
 
-    def enable_dynorder(self):
+    def set_dvo(self, xyz = None):
 
         if not hasattr(self, "_enable_dynorder"):
             self._enable_dynorder = declare(self.cudd.Cudd_AutodynEnable, [POINTER(DdManager), c_int])
 
         self._enable_dynorder(self.mgr, 4)
+
+    def get_dvo(self):
+        return "TODO"

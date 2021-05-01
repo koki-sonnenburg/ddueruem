@@ -7,6 +7,8 @@ import numpy as np
 import random
 import re
 
+import statistics
+
 from pprint import pprint
 
 #------------------------------------------------------------------------------#
@@ -428,17 +430,23 @@ def r_score(samples, commonality):
                 occ[x] += 1
 
 
+    deltas = []
+
     for i in range(1, len(occ)):
 
         sample_ratio = occ[i] / occ[0]
         commonality_ratio = commonality[i] / commonality[0]
 
-        print(i, f"{100 * sample_ratio:3.2f}%", f"{100 * commonality_ratio:3.2f}%", f"{100 * (commonality_ratio - sample_ratio):3.2f}%")
+        delta = commonality_ratio - sample_ratio
+        deltas.append(delta)
+
+        print(i, f"{100 * sample_ratio:3.2f}%", f"{100 * commonality_ratio:3.2f}%", f"{100 * (delta):3.2f}%")
+
+    print("-" * 32)
+    print(f"Avg:\t{100 * sum(deltas) / len(deltas):2.4f}% +/- {100*statistics.stdev(deltas):2.4f}%")
 
 
 def compute_edges(adj_list, root, node2var, n_variables):
-
-    count = 0
 
     stack = []
     stack.append((root, 0, [], True))
@@ -448,9 +456,7 @@ def compute_edges(adj_list, root, node2var, n_variables):
 
         if node == 1:
 
-
-            ccount = 1 << (n_variables - depth)
-            count += ccount
+            ccount = n_variables - depth
 
             npath = copy(path)
 
@@ -508,13 +514,15 @@ def cli():
 
     adj_list, root, node2var, variables, data = load_bdd_from_file(args.file)
 
+    print("Loaded")
+
     n_variables = len(variables)
-    n_sat = satcount(adj_list, root, n_variables)
+    # n_sat = satcount(adj_list, root, n_variables)
 
     adj_list = compute_edges(adj_list, root, node2var, n_variables)
 
-    commonality = get_commonality(adj_list, node2var, root, n_variables)
-    samples = uniform_random_sample(adj_list, node2var, n_variables, n_sat, n = 1000, valid = True, unqiue = False)
+    # commonality = get_commonality(adj_list, node2var, root, n_variables)
+    samples = uniform_random_sample(adj_list, node2var, n_variables, n_sat, n = 10000, valid = True, unqiue = False)
 
     # pprint(samples)
 

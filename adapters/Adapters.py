@@ -47,7 +47,7 @@ def install(lib, clean = False):
             Logging.log_info(Logging.highlight(lib.shared_lib), "already exists, skipping install")
             return 
 
-    if clean or not path.exists(archive):    
+    if clean or not path.exists(lib.archive):    
         Logging.log("Downloading...")
         download(lib.url, lib.archive)
 
@@ -60,7 +60,7 @@ def install(lib, clean = False):
         Logging.log_info(f"Unpacking", Logging.highlight(lib.archive))
         untar(lib.archive)
 
-    if clean or not path.exists(shared_lib):            
+    if clean or not path.exists(lib.shared_lib):            
         Logging.log("Configuring...")
         lib.configure()
 

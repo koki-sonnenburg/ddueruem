@@ -8,6 +8,7 @@ import argparse
 import config
 from ddueruem import init
 import utils.Logging as Logging
+import adapters.Adapters as Adapters
 
 #------------------------------------------------------------------------------#
 
