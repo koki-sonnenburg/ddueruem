@@ -46,9 +46,9 @@ def ordering(expr, flag_preorder):
     order = SVO.compute_default_order(expr)
 
     if flag_preorder != "off":
-        preorder = SVO.select_svo(args.preorder)
+        preorder = SVO.select_svo(flag_preorder)
         Logging.log_info("SVO:", Logging.highlight(preorder.name()))
-        with preorder(args.preorder) as svo:
+        with preorder(flag_preorder) as svo:
             order = svo.run(expr, order)
             expr.clauses = svo.sort_clauses_by_span(expr.clauses, order)
 

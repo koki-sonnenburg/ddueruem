@@ -62,7 +62,8 @@ class DIMACS_Parser:
 
         meta = {
             "input-name": self.filename,
-            "input-hash": hash_hex(self.filename)
+            "input-hash": hash_hex(self.filename),
+            "n_vars": nvars
         }
 
         return CNF(clauses, var_descs, meta)

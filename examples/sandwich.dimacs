@@ -1,47 +1,47 @@
-c 1 Sandwich
+c 1 Flatbread
 c 2 Vegetables
-c 3 Cucumber 
-c 4 Tomatoes
-c 5 Lettuce
-c 6 Cheese
-c 7 Gouda
-c 8 Cheddar
-c 9 Cream Cheese 
-c 10 Bread
-c 11 Full Grain 
-c 12 Flatbread
-c 13 Toast
-c 14 Meat
-c 15 Salami 
-c 16 Ham
+c 3 Cheddar
+c 4 Cheese
+c 5 Cucumber 
+c 6 Salami 
+c 7 Full Grain 
+c 8 Bread
+c 9 Meat
+c 10 Sandwich
+c 11 Lettuce
+c 12 Toast
+c 13 Ham
+c 14 Slice
+c 15 Gouda
+c 16 Tomatoes
 c 17 Chicken Breast
 c 18 Sprinkled
-c 19 Slice
+c 19 Cream Cheese 
 p cnf 19 27
-1 0
-2 -3 0
-2 -4 0
+10 0
 2 -5 0
-6 -7 0
-6 -8 0
-6 -9 0
-10 -11 0
-10 -12 0
-10 -13 0
-11 12 13 -10 0
--11 -12 0
--11 -13 0
--12 -13 0
-14 -15 0
-14 -16 0
-14 -17 0
-15 16 17 -14 0
-1 -10 0
-1 -6 0
-1 -14 0
-1 -2 0
-10 -1 0
-7 -18 0
-7 -19 0
-18 19 -7 0
--18 -19 0
+2 -16 0
+2 -11 0
+4 -15 0
+4 -3 0
+4 -19 0
+8 -7 0
+8 -1 0
+8 -12 0
+7 1 12 -8 0
+-7 -1 0
+-7 -12 0
+-1 -12 0
+9 -6 0
+9 -13 0
+9 -17 0
+6 13 17 -9 0
+10 -8 0
+10 -4 0
+10 -9 0
+10 -2 0
+8 -10 0
+15 -18 0
+15 -14 0
+18 14 -15 0
+-18 -14 0
