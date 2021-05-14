@@ -4,8 +4,6 @@ import os
 import re
 import subprocess
 
-import timeout_decorator
-
 from . import Adapter_Generic
 from config import CACHE_DIR
 

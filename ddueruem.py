@@ -14,15 +14,14 @@ from pprint import pprint
 #------------------------------------------------------------------------------#
 
 import config
+import utils.Caching as Caching
 from utils.IO import bulk_format
 import utils.Logging as Logging
 
 import adapters.Adapters as Adapters
-import caching.Caching as Caching
 
 from adapters.BDD import BDD
 from parsers.DIMACS_Parser import DIMACS_Parser
-from parsers.UVL_Parser import UVL_Parser
 from svo import SVOutils as SVO
 
 #------------------------------------------------------------------------------#
@@ -149,6 +148,7 @@ def cli():
 
     if args.use_cached_artifacts and Caching.artifact_cache_exists(input_file, args.lib):
         Logging.log_info("Using cached BDD")
+        raise NotImplementedError("Using cached BDD")
         # bdd = fromCache
     else:
         expr = parsing(input_file, args.parser, args.mode)
@@ -156,18 +156,19 @@ def cli():
 
         if args.use_cached_order and Caching.order_cache_exists(input_file, args.preorder):
             Logging.log_info("Using cached variable order")
+            raise NotImplementedError("Using cached VO")
             # order = fromCache
         else:
             order = ordering(expr, args.preorder)
 
-    with BDD(args.lib) as bdd:
-        Logging.log_info("Library:", Logging.highlight(bdd.lib.name))
+        with BDD(args.lib) as bdd:
+            Logging.log_info("Library:", Logging.highlight(bdd.lib.name))
 
-        bdd.set_dvo(args.dynorder)
-        Logging.log_info("DVO:", Logging.highlight(bdd.get_dvo()))
+            bdd.set_dvo(args.dynorder)
+            Logging.log_info("DVO:", Logging.highlight(bdd.get_dvo()))
 
-        bdd.buildFrom(expr, order)
-        filename_bdd = bdd.dump()
+            bdd.buildFrom(expr, order)
+            filename_bdd = bdd.dump()
 
 #------------------------------------------------------------------------------#
 
