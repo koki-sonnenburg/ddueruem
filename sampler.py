@@ -21,25 +21,56 @@ import utils.Logging as Logging
 
 #------------------------------------------------------------------------------#
 
-def satcount(adj_list, root, n_variables):
-    count = 0
-
+def satcount(adj_list, node2var, var2nodes, order, root):
+    
     stack = []
-    stack.append((root, 0))
+    stack.append(root)
 
     while stack:
-        node, depth = stack.pop()
+        node = stack.pop()
 
-        if node == 1:
-            count += 1 << (n_variables - depth)
-        elif node != 0:
-            low = adj_list[node][0]
-            high = adj_list[node][1]
+        # print(node)
 
-            stack.append((low, depth +1))
-            stack.append((high, depth +1))
+        if node < 2:
+            continue    
 
-    return count
+        low = adj_list[node][0]
+        high = adj_list[node][1]
+
+        visitLow = False
+        visitHigh = False
+
+        if adj_list[low][2] > 0 or low < 2:
+            if low > 0:
+                if low < 2:
+                    child_index = len(order)
+                else:
+                    child_index = order.index(node2var[low])
+
+                adj_list[node][2] = adj_list[low][2] * (1 << (child_index - order.index(node2var[node]) - 1))
+        else:
+            visitLow = True
+
+        if adj_list[high][2] > 0 or high < 2:
+            if high > 0:
+                if high < 2:
+                    child_index = len(order)
+                else:
+                    child_index = order.index(node2var[high])
+
+                adj_list[node][2] += adj_list[high][2] * (1 << (child_index - order.index(node2var[node]) - 1))
+        else:
+            visitHigh = True
+
+        if visitLow or visitHigh:
+            stack.append(node)
+            if visitLow:
+                stack.append(low)
+
+            if visitHigh:
+                stack.append(high)
+
+    return adj_list[root][2]
 
 def get_commonality(adj_list, node2var, root, n_variables):
     count = 0
@@ -94,8 +125,6 @@ def get_commonality(adj_list, node2var, root, n_variables):
 
 def load_bdd_from_file(filename):
 
-    #FIXME: No support for complement edges => USE BUDDY
-
     with open(filename) as file:
         lines = re.split("[\n\r]", file.read())
 
@@ -118,8 +147,9 @@ def load_bdd_from_file(filename):
         if m:
             nodes.append((int(m["id"]), int(m["var"]), int(m["low_ce"]) == 1, int(m["low"]), int(m["high_ce"]) == 1, int(m["high"])))
 
-    adj_list = np.zeros((len(nodes)+2, 4), int)
-    adj_list[1][:2] = 1
+    adj_list = np.zeros((len(nodes)+2, 5), int)
+
+    adj_list[1][:3] = 1
 
     k = 2
 
@@ -134,22 +164,30 @@ def load_bdd_from_file(filename):
 
     variables = set(range(1, int(data["n_vars"][0]) + 1))
     node2var = {}
+    var2nodes = {}
 
     for node in nodes:
         id, var, lce, l, hce, h = node
+
+        var += 1
 
         id = old2new[id]
         l = old2new[l]
         h = old2new[h]
 
-        node2var[id] = var + 1
+        node2var[id] = var
+
+        if var in var2nodes:
+            var2nodes[var].append(id)
+        else:
+            var2nodes[var] = [id] 
 
         adj_list[id][0] = l
         adj_list[id][1] = h
 
     root = old2new[int(data["root"][1])]
 
-    return adj_list, root, node2var, variables, data
+    return adj_list, root, node2var, var2nodes, variables, data
 
 def uniform_random_sample(adj_list, node2var, n_variables, n_sat, n = 10, valid = True, unqiue = True):
 
@@ -470,14 +508,8 @@ def compute_edges(adj_list, root, node2var, n_variables):
                 v = npath[i+1]
 
                 if v < 0:
-                    if adj_list[u][0] != abs(v):
-                        raise Exception(u, v)
-
                     adj_list[u][2] += ccount
                 else:
-                    if adj_list[u][1] != abs(v):
-                        raise Exception(u, v)
-
                     adj_list[u][3] += ccount
 
         elif node != 0:
@@ -512,21 +544,25 @@ def cli():
 
     init(root_script = __file__, silent = args.silent)
 
-    adj_list, root, node2var, variables, data = load_bdd_from_file(args.file)
+    adj_list, root, node2var, var2nodes, variables, data = load_bdd_from_file(args.file)
 
+    order = data["order"]
+    order = [int(x) for x in re.split(r",", order[0])]
+   
     print("Loaded")
 
     n_variables = len(variables)
-    # n_sat = satcount(adj_list, root, n_variables)
+    n_sat = satcount(adj_list, node2var, var2nodes, order, root)
 
-    adj_list = compute_edges(adj_list, root, node2var, n_variables)
+    print(n_sat)
+    # adj_list = compute_edges(adj_list, root, node2var, n_variables)
 
     # commonality = get_commonality(adj_list, node2var, root, n_variables)
     samples = uniform_random_sample(adj_list, node2var, n_variables, n_sat, n = 10000, valid = True, unqiue = False)
 
     # pprint(samples)
 
-    r_score(samples, commonality)
+    # r_score(samples, commonality)
     # pprint(samples)
 
 #------------------------------------------------------------------------------#

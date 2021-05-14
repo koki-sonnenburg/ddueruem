@@ -50,7 +50,8 @@ def ordering(expr, flag_preorder):
         Logging.log_info("SVO:", Logging.highlight(preorder.name()))
         with preorder(flag_preorder) as svo:
             order = svo.run(expr, order)
-            expr.clauses = svo.sort_clauses_by_span(expr.clauses, order)
+            if svo.provides_clause_ordering():
+                expr.clauses = svo.order_clauses(expr.clauses, order)
 
     return order
 

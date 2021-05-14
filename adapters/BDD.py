@@ -6,6 +6,20 @@ from .Adapters import get_lib, get_meta
 import caching.Caching as Caching
 import utils.Logging as Logging
 
+import timeout_decorator
+
+class timeout:
+    def __init__(self, seconds=1, error_message='Timeout'):
+        self.seconds = seconds
+        self.error_message = error_message
+    def handle_timeout(self, signum, frame):
+        raise TimeoutError(self.error_message)
+    def __enter__(self):
+        signal.signal(signal.SIGALRM, self.handle_timeout)
+        signal.alarm(self.seconds)
+    def __exit__(self, type, value, traceback):
+        signal.alarm(0)
+
 class BDD:
 
     def __init__(self, lib):
@@ -74,7 +88,7 @@ class BDD:
 
         for i, clause in enumerate(cnf.clauses):
 
-            Logging.log_info(f"{i + 1} / {len(cnf.clauses)} ({100*(i+1)/len(cnf.clauses):.1f}%)")
+            Logging.log_info(f"{i + 1} / {len(cnf.clauses)} ({100*(i+1)/len(cnf.clauses):3.1f}%)")
 
             clause_bdd = mgr.zero_()
 
@@ -87,7 +101,12 @@ class BDD:
                 else:
                     clause_bdd = mgr.or_(clause_bdd, mgr.ithvar_(y))
 
-            bdd = mgr.and_(bdd, clause_bdd)
+
+            try:
+                bdd = mgr.and_(bdd, clause_bdd)            
+
+            except StopIteration:
+                print("Skipping clause", i + 1, "due to timeout")
 
         time_stop = datetime.now()
 

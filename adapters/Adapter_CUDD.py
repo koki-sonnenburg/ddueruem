@@ -275,6 +275,19 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
 #---- Utility -----------------------------------------------------------------#
     
+    def set_timelimit(self, t):        
+        if not hasattr(self, "_set_time_limit"):
+            self._set_time_limit = declare(self.cudd.Cudd_SetTimeLimit, [POINTER(DdManager), c_uint])
+
+        self._set_time_limit(self.mgr, t)
+
+    def unset_timelimit(self):
+
+        if not hasattr(self, "_unset_time_limit"):
+            self._unset_time_limit = declare(self.cudd.Cudd_UnsetTimeLimit, [POINTER(DdManager)])
+
+        self._unset_time_limit(self.mgr)
+
     def addref_(self, obj):
 
         if not hasattr(self, "_addref"):

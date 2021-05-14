@@ -28,7 +28,10 @@ class FORCE:
 
         return order
 
-    def sort_clauses_by_span(self, clauses, order):
+    def provides_clause_ordering(self):
+        return True
+
+    def order_clauses(self, clauses, order):
         
         spans = []
 

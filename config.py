@@ -12,7 +12,7 @@ LOG_DIR     = "log"
 REPORT_DIR  = "reports"
 
 # CLI choices
-PREORDER_CHOICES    = ["off", "force", "force-triage"]
+PREORDER_CHOICES    = ["off", "force", "force-triage", "dbo"]
 DYNORDER_CHOICES    = ["off", "lib-default", "sift", "sift-conv"]
 
 PARSER_CHOICES      = ["auto", "dimacs", "uvl"]

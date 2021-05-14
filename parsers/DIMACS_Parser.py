@@ -2,6 +2,8 @@ import re
 
 #------------------------------------------------------------------------------#
 
+import utils.Logging as Logging
+
 from utils.InputFormats import CNF
 from utils.IO import hash_hex
 
@@ -38,9 +40,18 @@ class DIMACS_Parser:
                 if m is None:
                     line = re.sub(r"[\n\r]", "", line)
                     clause = re.split(r"\s+", line)
-                    clause = [int(x) for x in clause if x != '0']
-                    
-                    clauses.append(clause)
+                    clause = sorted([int(x) for x in clause if x != '0'], key = lambda x : abs(x))
+
+                    isTautology = False
+
+                    for i in range(0, len(clause)-1):
+                        if clause[i] + clause[i+1] == 0:
+                            Logging.log("Removed tautological clause", clause)
+                            isTautology = True
+                            break
+
+                    if not isTautology:
+                        clauses.append(clause)
 
                 elif m["type"] == "c":
                     m = re.match(r"\s*(?P<id>[1-9][0-9]*) (?P<desc>\w+)", m["content"])

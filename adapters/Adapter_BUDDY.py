@@ -4,6 +4,8 @@ import os
 import re
 import subprocess
 
+import timeout_decorator
+
 from . import Adapter_Generic
 from config import CACHE_DIR
 
@@ -132,7 +134,8 @@ class Manager(Adapter_Generic.Adapter_Generic):
         return self.buddy.bdd_not(obj)
 
 #---- Binary Operators --------------------------------------------------------#
-
+    
+    # @timeout_decorator.timeout(5, timeout_exception=StopIteration)
     def and_(self, lhs, rhs, free_factors = True):
         out = self.buddy.bdd_addref(self.buddy.bdd_and(lhs, rhs))
 
@@ -142,6 +145,7 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
         return out
 
+    # @timeout_decorator.timeout(5, timeout_exception=StopIteration)
     def or_(self, lhs, rhs, free_factors = True):
         out = self.buddy.bdd_addref(self.buddy.bdd_or(lhs, rhs))
 
