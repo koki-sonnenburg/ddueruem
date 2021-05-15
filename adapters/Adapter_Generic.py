@@ -1,6 +1,7 @@
 from ctypes import CDLL
 from os import path
 
+import utils.Logging as Logging
 
 class Adapter_Generic:
 

@@ -19,7 +19,7 @@ shared_lib  = "libbuddy.so"
 
 configure_settings = "CFLAGS=-fPIC -std=c99"
 
-hint_install = "--install buddy"
+hint_install = "./setup.py buddy"
 
 has_zero_based_indizes = True
 requires_variable_advertisement = True
@@ -95,14 +95,11 @@ class Manager(Adapter_Generic.Adapter_Generic):
     def init(self):
         buddy = self.load_lib(shared_lib, hint_install)
 
-        buddy.bdd_init(100000, 100000)
+        buddy.bdd_init(1000000, 100000)
         buddy.bdd_setminfreenodes(33)
         buddy.bdd_setmaxincrease(c_int(100000))
 
         self.buddy = buddy
-
-        # Enable DVO
-        self.set_dvo("lib-default")
 
     def exit(self):
         self.buddy.bdd_done()
@@ -170,17 +167,11 @@ class Manager(Adapter_Generic.Adapter_Generic):
         else:
             self.buddy.bdd_reorder(dvo_options["lib-default"])
 
-    def set_dvo(self, dvo_stub):
+    def enable_dvo(self, dvo_id):
+        self.buddy.bdd_autoreorder(dvo_id)
 
-        if dvo_stub in dvo_options:
-            self.dvo = dvo_stub
-            Logging.log_info(f"[{name}] Enabled DVO ({dvo_stub})")
-        else:
-            Logging.log_warning(f"Method {dvo_stub} not supported by {name}")
-            self.dvo = None
-        
-    def get_dvo(self):
-        return self.dvo
+    def disable_dvo(self):
+        self.buddy.bdd_autoreorder(dvo_options["off"])
 
     def set_order(self, order):
 

@@ -11,6 +11,8 @@ import sys
 from . import Adapter_Generic
 from config import CACHE_DIR
 
+import utils.Logging as Logging
+
 name        = "CUDD 3.0.0"
 stub        = "cudd"
 url         = "https://davidkebo.com/source/cudd_versions/cudd-3.0.0.tar.gz"
@@ -21,11 +23,40 @@ shared_lib  = "libcudd.so"
 
 configure_settings = "CFLAGS=-fPIC -std=c99"
 
-hint_install = "--install cudd"
+hint_install = "./setup.py cudd"
 
-reordering_algorithms = {
+dvo_options = {
+    "off":1,
+    "lib-default": 5,
+    #
+    "random":2,
+    "random-pivot":3,
+    #
     "sift": 4,
-    "sift-conv": 5
+    "sift-conv": 5,
+    #
+    "sift-sym": 6,
+    "sift-sym-conv": 7,
+    #
+    "win2": 8,
+    "win3": 9,
+    "win4": 10,
+    #
+    "win2-conv": 11,
+    "win3-conv": 12,
+    "win4-conv": 13,
+    #
+    "sift-group": 14,
+    "sift-group-conf": 15,
+    #
+    "annealing": 16,
+    "genetic": 17,
+    #
+    "linear": 18,
+    "linear-conv": 19,
+    #
+    "sift-lazy": 20,
+    "exact": 21
 }
 
 has_zero_based_indizes = True
@@ -165,7 +196,6 @@ class Manager(Adapter_Generic.Adapter_Generic):
         self.cudd = self.load_lib(shared_lib, hint_install)
         self._init = declare(self.cudd.Cudd_Init, [c_uint, c_uint, c_uint, c_uint, c_ulong], POINTER(DdManager))
         self.mgr = self._init(0, 0, 256, 262144, 0)
-        self.set_dvo()
 
         return self
 
@@ -349,12 +379,17 @@ class Manager(Adapter_Generic.Adapter_Generic):
         arr = (c_uint * len(order))(*order)
         self._setorder(self.mgr, arr)
 
-    def set_dvo(self, xyz = None):
+    def enable_dvo(self, dvo_id):
 
         if not hasattr(self, "_enable_dynorder"):
             self._enable_dynorder = declare(self.cudd.Cudd_AutodynEnable, [POINTER(DdManager), c_int])
 
-        self._enable_dynorder(self.mgr, 4)
+        self._enable_dynorder(self.mgr, dvo_id)
 
-    def get_dvo(self):
-        return "TODO"
+    def disable_dvo(self):
+
+        if not hasattr(self, "_disable_dynorder"):
+            self._disable_dynorder = declare(self.cudd.Cudd_AutodynDisable, [POINTER(DdManager)])
+
+        self._disable_dynorder(self.mgr)
+

@@ -28,7 +28,7 @@ en:
   cli--parser: select the parser to use. (auto)
 
   cli--preorder: select the heuristic for preordering. (off)
-  cli--dynorder: enable dynamic reordering w/ the selected heuristic. (lib-default)
+  cli--dynorder: enable dynamic reordering w/ the selected heuristic. (off) [help]
   
   cli--ignore-cached-order: ignore cached variable orders.
   cli--ignore-cached-artifacts: ignore cached BDDs.

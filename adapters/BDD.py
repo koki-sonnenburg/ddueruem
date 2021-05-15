@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from utils.IO import basename, timestamp, format_runtime
+from utils.IO import basename, timestamp, format_runtime, bulk_format
 from .Adapters import get_lib, get_meta
 
 import utils.Caching as Caching
@@ -67,10 +67,26 @@ class BDD:
             Logging.log_warning("BDD manager not initialized, not setting DVO.")
             return
 
-        self.mgr.set_dvo(dvo_stub)
+        dvo_options = self.lib.dvo_options
+
+        self.mgr.dvo = dvo_stub
+
+        if dvo_stub == "off":
+            self.mgr.disable_dvo()
+        else:
+            if dvo_stub in dvo_options:
+                self.mgr.enable_dvo(dvo_options[dvo_stub])
+            else:
+                Logging.log_warning(f"Library {lib.name} does not support DVO {dvo_stub}")
+                self.mgr.disable_dvo()
 
     def get_dvo(self):
-        return self.mgr.get_dvo()
+        return self.mgr.dvo
+
+    def list_available_dvo_options(self):
+        ls = [x for x, _ in self.lib.dvo_options.items()]
+
+        print(f"Available DVO options for {self.lib.name}:", bulk_format(Logging.highlight(", ".join(ls)), color = "blue"))
 
     def fromCNF(self, cnf, order = None):
 
@@ -121,48 +137,3 @@ class BDD:
         self.mgr.dump(self.bdd, filename, no_variables = self.no_variables, meta = self.meta)
 
         return filename
-
-
-    # def fromFM(self, fm, order = None):
-
-    #     self.fromCNF(fm.expr_fd)
-
-    #     for ast in fm.expr_ctcs:
-    #         self.fromAST(ast)
-
-    # def fromAST(self, ast, order = None):
-
-    #     bdd = self.bdd
-    #     lib = self.lib
-    #     mgr = self.mgr
-
-    #     if bdd is None:
-    #         self.init(cnf.get_no_variables(), cnf.get_meta(), order)
-    #         bdd = mgr.one_()
-
-        
-    #     time_start = datetime.now()
-
-    #     for clause in cnf.clauses:
-
-    #         clause_bdd = mgr.zero_()
-
-    #         for x in clause:
-
-    #             y = abs(x) - self.varmod
-                
-    #             if x < 0:
-    #                 clause_bdd = mgr.or_(clause_bdd, mgr.nithvar_(y))
-    #             else:
-    #                 clause_bdd = mgr.or_(clause_bdd, mgr.ithvar_(y))
-
-    #         bdd = mgr.and_(bdd, clause_bdd)
-
-    #     time_stop = datetime.now()
-
-    #     if "lib-runtime" in self.meta:
-    #         self.meta["lib-runtime"].append(format_runtime(time_stop - time_start))
-    #     else:
-    #         self.meta["lib-runtime"] = [format_runtime(time_stop - time_start)]
-
-    #     self.bdd = bdd

@@ -13,7 +13,6 @@ REPORT_DIR  = "_reports"
 
 # CLI choices
 PREORDER_CHOICES    = ["off", "force", "force-triage", "dbo"]
-DYNORDER_CHOICES    = ["off", "lib-default", "sift", "sift-conv"]
 
 PARSER_CHOICES      = ["auto", "dimacs"]
 MODE_CHOICES        = ["full", "only-ctcs", "only-fd"] # ignored for now

@@ -127,7 +127,7 @@ def cli():
 
     # Variable Ordering
     parser.add_argument("--preorder", help = bulk_format("cli--preorder"), choices = config.PREORDER_CHOICES, type = str.lower, default = config.SVO_DEFAULT)
-    parser.add_argument("--dynorder", help = bulk_format("cli--dynorder"), choices = config.DYNORDER_CHOICES, type = str.lower, default = config.DVO_DEFAULT)
+    parser.add_argument("--dynorder", help = bulk_format("cli--dynorder"), type = str.lower, default = config.DVO_DEFAULT)
     
     # IO Toggles
     parser.add_argument("--silent", help = bulk_format("cli--silent"), dest = "silent", action = "store_true", default = False)
@@ -141,6 +141,14 @@ def cli():
     args = parser.parse_args()
 
     init()
+
+
+    dvo = args.dynorder
+    if dvo == "help":
+        with BDD(args.lib) as bdd:
+            bdd.list_available_dvo_options()
+
+        exit(0)
 
     input_file = args.file
 
@@ -163,6 +171,7 @@ def cli():
 
         with BDD(args.lib) as bdd:
             Logging.log_info("Library:", Logging.highlight(bdd.lib.name))
+                
 
             bdd.set_dvo(args.dynorder)
             Logging.log_info("DVO:", Logging.highlight(bdd.get_dvo()))
