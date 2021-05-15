@@ -62,6 +62,8 @@ class BDD:
         if order:
             mgr.set_order(order)
 
+        mgr.dvo = "off"
+
     def set_dvo(self, dvo_stub):
         if self.mgr is None:
             Logging.log_warning("BDD manager not initialized, not setting DVO.")
@@ -124,13 +126,13 @@ class BDD:
 
         time_stop = datetime.now()
 
-        self.meta["lib-runtime"] = format_runtime(time_stop - time_start)
+        self.meta["runtime-compilation"] = format_runtime(time_stop - time_start)
         self.bdd = bdd
 
     def dump(self, filename = None):
 
         if filename is None:
-            filename = Caching.get_artifact_cache(self.meta['input-name'], self.lib.stub)
+            filename = Caching.get_artifact_cache(self.meta['input-name'], self.lib.stub, self.mgr.dvo)
 
         Logging.log_info("Dumpfile:", Logging.highlight(filename))
 

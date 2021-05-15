@@ -30,6 +30,7 @@ class DIMACS_Parser:
 
         nvars = 0
         nclauses = 0
+        ignored_clauses = 0
 
         clauses = []
 
@@ -48,6 +49,7 @@ class DIMACS_Parser:
                         if clause[i] + clause[i+1] == 0:
                             Logging.log("Removed tautological clause", clause)
                             isTautology = True
+                            ignored_clauses += 1
                             break
 
                     if not isTautology:
@@ -68,8 +70,8 @@ class DIMACS_Parser:
                     nvars = int(m["nvars"])
                     nclauses= int(m["nclauses"])
 
-        if nclauses != len(clauses):
-            print(f"[WARNING] Specified number of clauses ({nclauses}) differs from number of parsed ones ({len(clauses)}).")
+        if nclauses != len(clauses) + ignored_clauses:
+            print(f"[WARNING] Specified number of clauses ({nclauses}) differs from number of parsed ones ({len(clauses) + ignored_clauses}).")
 
         meta = {
             "input-name": self.filename,

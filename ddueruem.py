@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------#
 
 import argparse             
-
+from datetime import datetime
 import os
 from os import path
 
@@ -15,7 +15,7 @@ from pprint import pprint
 
 import config
 import utils.Caching as Caching
-from utils.IO import bulk_format
+from utils.IO import bulk_format, format_runtime
 import utils.Logging as Logging
 
 import adapters.Adapters as Adapters
@@ -36,7 +36,10 @@ def parsing(input_file, flag_parser, flag_mode):
         Logging.log_error("dimacs does not segregate feature diagram and cross-tree constraints.")
 
     with parser(input_file) as parser:
+        time_start = datetime.now()
         expr = parser.parse()
+        time_stop = datetime.now()
+        expr.meta["runtime-parsing"] = format_runtime(time_stop - time_start)
 
     return expr
 
@@ -47,10 +50,24 @@ def ordering(expr, flag_preorder):
     if flag_preorder != "off":
         preorder = SVO.select_svo(flag_preorder)
         Logging.log_info("SVO:", Logging.highlight(preorder.name()))
+        
+        time_start = datetime.now()
         with preorder(flag_preorder) as svo:
             order = svo.run(expr, order)
             if svo.provides_clause_ordering():
                 expr.clauses = svo.order_clauses(expr.clauses, order)
+
+        time_stop = datetime.now()
+        expr.meta["runtime-preodering"] = format_runtime(time_stop-time_start)
+
+    cachefile = Caching.get_order_cache(expr.meta["input-name"], flag_preorder)
+    content = []
+    content.append(f"input-name:{expr.meta['input-name']}")
+    content.append(f"input-hash:{expr.meta['input-hash']}")
+    content.append(f"order:{','.join([str(x) for x in order])}")
+
+    with open(cachefile, "w") as file:
+        file.write(os.linesep.join(content))
 
     return order
 
@@ -100,18 +117,12 @@ def verify_create(dir):
 def select_parser(input_file, parser):
 
     if parser == "auto":
-
         if input_file.lower().endswith("dimacs"):
             return DIMACS_Parser
-        elif input_file.lower().endswith("uvl"):
-            return UVL_Parser
         else:
             Logging.log_error("Could not auto-detect input file format, please manually select the correct parser")
-
     elif parser == "dimacs":
         return DIMACS_Parser
-    elif parser == "uvl":
-        return UVL_Parser
     else:
         Logging.log_error("Unknown parser", Logging.highlight(parser))
 
@@ -136,12 +147,12 @@ def cli():
 
     # Caching Toggles    
     parser.add_argument("--ignore-cached-order", help = bulk_format("cli--ignore-cached-order"), dest = "use_cached_order", action = "store_false", default = True)
-    parser.add_argument("--ignore-cached-artifacts", help = bulk_format("cli--ignore-cached-artifacts"), dest = "use_cached_artifacts", action = "store_false", default = True)
 
     args = parser.parse_args()
 
     init()
 
+    ### TODO: Move to function, to be callable via script
 
     dvo = args.dynorder
     if dvo == "help":
@@ -154,30 +165,30 @@ def cli():
 
     Logging.log_info("Input:", Logging.highlight(input_file))
 
-    if args.use_cached_artifacts and Caching.artifact_cache_exists(input_file, args.lib):
-        Logging.log_info("Using cached BDD")
-        raise NotImplementedError("Using cached BDD")
-        # bdd = fromCache
-    else:
-        expr = parsing(input_file, args.parser, args.mode)
+    expr = parsing(input_file, args.parser, args.mode)
+
+    Logging.log_info("Parsing time:", Logging.highlight(expr.meta["runtime-parsing"]))
+
+    if len(str(expr)) <= 8192:
         Logging.log_info("Expression:", Logging.highlight(expr))
 
-        if args.use_cached_order and Caching.order_cache_exists(input_file, args.preorder):
-            Logging.log_info("Using cached variable order")
-            raise NotImplementedError("Using cached VO")
-            # order = fromCache
-        else:
-            order = ordering(expr, args.preorder)
+    if args.use_cached_order and Caching.order_cache_exists(input_file, args.preorder):
+        order = Caching.read_order_cache(input_file, args.preorder)
+        Logging.log_info("Using cached variable order:", Logging.highlight(order))
+    else:
+        order = ordering(expr, args.preorder)
 
-        with BDD(args.lib) as bdd:
-            Logging.log_info("Library:", Logging.highlight(bdd.lib.name))
-                
+    with BDD(args.lib) as bdd:
+        Logging.log_info("Library:", Logging.highlight(bdd.lib.name))            
 
-            bdd.set_dvo(args.dynorder)
-            Logging.log_info("DVO:", Logging.highlight(bdd.get_dvo()))
+        bdd.set_dvo(args.dynorder)
+        Logging.log_info("DVO:", Logging.highlight(bdd.get_dvo()))
 
-            bdd.buildFrom(expr, order)
-            filename_bdd = bdd.dump()
+        bdd.buildFrom(expr, order)
+
+        Logging.log_info("Compilation time:", Logging.highlight(bdd.meta["runtime-compilation"]))
+
+        filename_bdd = bdd.dump()
 
 #------------------------------------------------------------------------------#
 

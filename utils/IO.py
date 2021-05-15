@@ -93,7 +93,7 @@ def format(msg, color = None, bg = None, attrs = None):
     return msg
 
 def format_runtime(runtime):
-    return f"{runtime.total_seconds():.3f}"
+    return f"{runtime.total_seconds():.3f} s"
 
 ###
 
