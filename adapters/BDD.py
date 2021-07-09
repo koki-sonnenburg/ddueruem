@@ -1,39 +1,47 @@
 from datetime import datetime
 
 from utils.IO import basename, timestamp, format_runtime, bulk_format
-from .Adapters import get_lib, get_meta
 
 import utils.Caching as Caching
 import utils.Logging as Logging
 
-class timeout:
-    def __init__(self, seconds=1, error_message='Timeout'):
-        self.seconds = seconds
-        self.error_message = error_message
-    def handle_timeout(self, signum, frame):
-        raise TimeoutError(self.error_message)
-    def __enter__(self):
-        signal.signal(signal.SIGALRM, self.handle_timeout)
-        signal.alarm(self.seconds)
-    def __exit__(self, type, value, traceback):
-        signal.alarm(0)
+# TODO: Move to interface
+
+from config import DDUERUEM_VERSION
+
+def get_meta(lib):
+    return {
+        "ddueruem-version": DDUERUEM_VERSION,
+        "lib-name-stub":lib.stub,
+        "lib-name":lib.name
+    }
 
 class BDD:
 
+
     def __init__(self, lib):
         self.bdd = None
-        self.lib = get_lib(lib)
+        self.lib = lib
+
         self.mgr = self.lib.Manager()
-        self.meta = get_meta(self.lib)
+        self.mgr.init()
+
+        self.meta = get_meta(lib)
 
     def __enter__(self):
-
-        self.mgr.init()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        
+    def __exit__(self, *args):        
         self.mgr.exit()
+
+    def get_type(self):
+        return "BDD Library"
+
+    def get_mgr(self):
+        return self.mgr
+
+    def say_hi(self):
+        self.mgr.say_hi()
 
 
     def buildFrom(self, input, order = None):
@@ -74,13 +82,19 @@ class BDD:
         self.mgr.dvo = dvo_stub
 
         if dvo_stub == "off":
-            self.mgr.disable_dvo()
+            self.disable_dvo()
         else:
             if dvo_stub in dvo_options:
                 self.mgr.enable_dvo(dvo_options[dvo_stub])
+                Logging.log_info(f"Enabled DVO {dvo_stub}")
             else:
                 Logging.log_warning(f"Library {lib.name} does not support DVO {dvo_stub}")
-                self.mgr.disable_dvo()
+                self.list_available_dvo_options()
+                self.disable_dvo()
+
+    def disable_dvo(self):
+        self.mgr.disable_dvo()
+        Logging.log_info(f"{self.mgr.get_name()} > Disabled DVO")
 
     def get_dvo(self):
         return self.mgr.dvo

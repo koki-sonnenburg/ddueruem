@@ -9,22 +9,23 @@ from utils.IO import hash_hex
 
 #------------------------------------------------------------------------------#
 
-class DIMACS_Parser: 
+# TODO 
+# 
+# i18n strings, write unit tests, extend parser to fully comply to the standard
+#
 
-    @staticmethod
-    def name():
-        return "dimacs"
+class DIMACS_Parser: 
 
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+    def __exit__(self, *args):
+        return
 
-    def __init__(self, filename):
-        self.filename = filename
+    def name(self):
+        return "dimacs"
 
-    def parse(self):
+    def parse(self, filename):
 
         var_descs = {}
 
@@ -34,7 +35,7 @@ class DIMACS_Parser:
 
         clauses = []
 
-        with open(self.filename) as file:
+        with open(filename) as file:
             for line in file.readlines():
                 m = re.match(r"(?P<type>[cp]) (?P<content>.*)", line)
 
@@ -74,11 +75,11 @@ class DIMACS_Parser:
             print(f"[WARNING] Specified number of clauses ({nclauses}) differs from number of parsed ones ({len(clauses) + ignored_clauses}).")
 
         meta = {
-            "input-name": self.filename,
-            "input-hash": hash_hex(self.filename),
-            "n_vars": nvars
+            "input-name": filename,
+            "input-hash": hash_hex(filename),
+            "n_vars": nvars,
+            "n_cnf_clauses": len(clauses),
+            "n_tautological_clauses": ignored_clauses
         }
 
         return CNF(clauses, var_descs, meta)
-
-

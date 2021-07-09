@@ -103,6 +103,7 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
     def exit(self):
         self.buddy.bdd_done()
+        self.say_bye()
 
     def set_no_variables(self, no_variables):
         self.buddy.bdd_setvarnum(no_variables)
@@ -157,22 +158,17 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
         return out
 
-#---- Utility -----------------------------------------------------------------#
+#---- Variable Ordering -------------------------------------------------------#
 
-    def reorder(self):
-        if self.dvo:
-            self.buddy.bdd_reorder(dvo_options[self.dvo])
-        else:
-            self.buddy.bdd_reorder(dvo_options["lib-default"])
-
-    def enable_dvo(self, dvo_id):
+    def enable_dvo(self, dvo_id = "lib-default"):
+        self.dvo_id = dvo_id  
         self.buddy.bdd_autoreorder(dvo_id)
 
-    def disable_dvo(self):
+    def disable_dvo(self, dvo_id):    
+        self.dvo_id = None
         self.buddy.bdd_autoreorder(dvo_options["off"])
 
     def set_order(self, order):
-
         order_min = min(order)
 
         if order_min > 0:
@@ -181,6 +177,22 @@ class Manager(Adapter_Generic.Adapter_Generic):
         arr = (c_uint * len(order))(*order)
 
         self.buddy.bdd_setvarorder(arr)
+        say(f"Set variable order to {order}")
+
+    def dvo_once(self, dvo_id = None):
+
+        if dvo_id:
+            #FIXME: Verify that dvo_id is valid
+            self.buddy.bdd_reorder(dvo_id)
+        elif self.dvo_id:
+            self.buddy.bdd_reorder(self.dvo_id)
+        else:
+            self.buddy.bdd_reorder(dvo_options["lib-default"])
+
+#---- Utility -----------------------------------------------------------------#
+
+    def addref_(self, obj):
+        pass
 
     def delref_(self, obj):
         self.buddy.bdd_delref(obj)
