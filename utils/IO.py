@@ -1,5 +1,5 @@
+from ctypes import CDLL, c_void_p
 from datetime import datetime, timedelta
-
 import hashlib
 
 import i18n
@@ -12,6 +12,10 @@ import requests
 
 import tarfile
 from termcolor import colored
+
+import tempfile
+
+import sys
 
 import config
 
@@ -117,3 +121,25 @@ def basename(file):
 
 def timestamp(sep = "", splitsep = ":"):
     return datetime.now().strftime(f"%Y{sep}%m{sep}%d{splitsep}%H{sep}%M{sep}%S")
+
+class STDOUT_Recorder():
+
+    def __init__(self, filename):
+        with open(filename, "w"):
+            pass
+
+        self._oldstdout_fno = os.dup(sys.stdout.fileno())
+        self.sink = os.open(filename, os.O_WRONLY)
+
+    def __enter__(self):
+        sys.stdout.flush()
+        self._newstdout = os.dup(1)
+        os.dup2(self.sink, 1)
+        os.close(self.sink)
+        sys.stdout = os.fdopen(self._newstdout, 'w')
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout = sys.__stdout__
+        sys.stdout.flush()
+        os.dup2(self._oldstdout_fno, 1)

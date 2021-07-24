@@ -4,6 +4,10 @@
 
 import argparse             
 from datetime import datetime
+
+from termcolor import cprint
+from pyfiglet import figlet_format
+
 import os
 from os import path
 
@@ -15,29 +19,28 @@ from pprint import pprint
 
 import config
 import utils.Caching as Caching
+
+# FIXME
 from utils.IO import bulk_format, format_runtime
+
 import utils.Logging as Logging
 
-import adapters.Adapters as Adapters
+from adapters import Adapters
 
-from adapters.BDD import BDD
-from parsers.DIMACS_Parser import DIMACS_Parser
+from parsers import DIMACS_Parser
 from svo import SVOutils as SVO
 
 #------------------------------------------------------------------------------#
 
-def parsing(input_file, flag_parser, flag_mode):
+def parsing(input_file, flag_parser = None):
 
     parser = select_parser(input_file, flag_parser)
 
-    Logging.log_info("Parser:", Logging.highlight(parser.name()))
+    with parser() as parser:
+        Logging.info("Parser:", Logging.highlight(parser.name()))
 
-    if flag_mode != "full" and parser.name() == "dimacs":
-        Logging.log_error("dimacs does not segregate feature diagram and cross-tree constraints.")
-
-    with parser(input_file) as parser:
         time_start = datetime.now()
-        expr = parser.parse()
+        expr = parser.parse(input_file)
         time_stop = datetime.now()
         expr.meta["runtime-parsing"] = format_runtime(time_stop - time_start)
 
@@ -49,7 +52,7 @@ def ordering(expr, flag_preorder):
 
     if flag_preorder != "off":
         preorder = SVO.select_svo(flag_preorder)
-        Logging.log_info("SVO:", Logging.highlight(preorder.name()))
+        Logging.info("SVO:", Logging.highlight(preorder.name()))
         
         time_start = datetime.now()
         with preorder(flag_preorder) as svo:
@@ -71,24 +74,29 @@ def ordering(expr, flag_preorder):
 
     return order
 
-def init(root_script = __file__, silent = False):
+def init(root_script = __file__, log_level = None, silent = False, no_log = False):
 
     # move to directory of the executed script
     os.chdir(os.path.dirname(os.path.realpath(root_script)))
-
-    if silent:
-        Logging.silence()
 
     # initialize logging
     log_dir = config.LOG_DIR
     verify_create(log_dir)
 
-    logfile = f"{log_dir}/log-{Logging.timestamp('-', '-')}.log"
-    
-    with open(logfile, "w+") as file:
-        pass
+    if not log_level:
+        ll_vol = config.LL_VOLATILE_DEFAULT
+        ll_per = config.LL_PERSISTENT_DEFAULT
+    else:
+        ll_vol = log_level
+        ll_per = log_level
 
-    Logging.init(logfile)
+    if silent:
+        ll_vol = config.LOGLEVEL_CHOICES[0]
+    
+    if no_log:
+        ll_per = config.LOGLEVEL_CHOICES[0]
+
+    Logging.init(ll_vol, ll_per)
 
     # verify existence of the folders cache & report
     cache_dir = config.CACHE_DIR
@@ -97,7 +105,6 @@ def init(root_script = __file__, silent = False):
     verify_create(cache_dir)
     verify_create(report_dir)
 
-
 def verify_create(dir):
     """Creates the directory dir if it does not already exist."""
 
@@ -105,7 +112,7 @@ def verify_create(dir):
         try:
             os.mkdir(dir)
         except OSError as ose:
-            Logging.log_error("error_create_directory_failed", Logging.highlight(dir))
+            Logging.error("error_create_directory_failed", Logging.highlight(dir))
         else:
             pass
             Logging.log("info_create_directory", Logging.highlight(path.abspath(dir)))
@@ -114,18 +121,17 @@ def verify_create(dir):
         Logging.log("info_use_directory", Logging.highlight(path.abspath(dir)))
 
 ### TODO: Move to parsers directory utility class
-def select_parser(input_file, parser):
+def select_parser(input_file, parser = None):
 
-    if parser == "auto":
+    if not parser or parser == "auto":
         if input_file.lower().endswith("dimacs"):
             return DIMACS_Parser
         else:
-            Logging.log_error("Could not auto-detect input file format, please manually select the correct parser")
+            Logging.error("Could not auto-detect input file format, please manually select the correct parser")
     elif parser == "dimacs":
         return DIMACS_Parser
     else:
-        Logging.log_error("Unknown parser", Logging.highlight(parser))
-
+        Logging.error("Unknown parser", Logging.highlight(parser))
 
 def cli():    
     parser = argparse.ArgumentParser(description=bulk_format("cli_desc"))
@@ -141,8 +147,9 @@ def cli():
     parser.add_argument("--dynorder", help = bulk_format("cli--dynorder"), type = str.lower, default = config.DVO_DEFAULT)
     
     # IO Toggles
+    parser.add_argument("--log-level", help = bulk_format("cli--log-level"), choices = config.LOGLEVEL_CHOICES, type = str.lower, default = None)
     parser.add_argument("--silent", help = bulk_format("cli--silent"), dest = "silent", action = "store_true", default = False)
-    parser.add_argument("--no-log", help = bulk_format("cli--no-log"), dest = "log", action = "store_false", default = True)
+    parser.add_argument("--no-log", help = bulk_format("cli--no-log"), dest = "no_log", action = "store_true", default = False)
     parser.add_argument("--no-cache", help = bulk_format("cli--no-cache"), dest = "cache", action = "store_false", default = True)
 
     # Caching Toggles    
@@ -150,43 +157,49 @@ def cli():
 
     args = parser.parse_args()
 
-    init()
+    init(log_level = args.log_level, silent = args.silent, no_log = args.no_log)
 
-    ### TODO: Move to function, to be callable via script
+    Logging.info("ddueruem", config.DDUERUEM_VERSION)
+    Logging.vspace()
+
+    ### Library
+
+    t,lib = Adapters.get_lib(args.lib)
+
+    kc_engine = t(lib)
+    kc_engine.say_hi()
 
     dvo = args.dynorder
-    if dvo == "help":
-        with BDD(args.lib) as bdd:
-            bdd.list_available_dvo_options()
+    kc_engine.set_dvo(dvo)
 
-        exit(0)
+    Logging.vspace()
 
     input_file = args.file
 
-    Logging.log_info("Input:", Logging.highlight(input_file))
+    Logging.info("Input:", Logging.highlight(input_file))
 
-    expr = parsing(input_file, args.parser, args.mode)
+    expr = parsing(input_file, args.parser)
 
-    Logging.log_info("Parsing time:", Logging.highlight(expr.meta["runtime-parsing"]))
+    Logging.info("Parsing time:", Logging.highlight(expr.meta["runtime-parsing"]))
 
     if len(str(expr)) <= 8192:
-        Logging.log_info("Expression:", Logging.highlight(expr))
+        Logging.info("Expression:", Logging.highlight(expr))
+    else:
+        Logging.info("Expression:", Logging.highlight(f"{str(expr)[:8189]}..."))
+
+    Logging.vspace()
 
     if args.use_cached_order and Caching.order_cache_exists(input_file, args.preorder):
         order = Caching.read_order_cache(input_file, args.preorder)
-        Logging.log_info("Using cached variable order:", Logging.highlight(order))
+        Logging.info("Using cached variable order:", Logging.highlight(order))
     else:
         order = ordering(expr, args.preorder)
 
-    with BDD(args.lib) as bdd:
-        Logging.log_info("Library:", Logging.highlight(bdd.lib.name))            
+    Logging.vspace()
 
-        bdd.set_dvo(args.dynorder)
-        Logging.log_info("DVO:", Logging.highlight(bdd.get_dvo()))
-
+    with kc_engine as bdd:
         bdd.buildFrom(expr, order)
-
-        Logging.log_info("Compilation time:", Logging.highlight(bdd.meta["runtime-compilation"]))
+        Logging.info("Compilation time:", Logging.highlight(bdd.meta["runtime-compilation"]))
 
         filename_bdd = bdd.dump()
 

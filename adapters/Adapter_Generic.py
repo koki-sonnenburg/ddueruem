@@ -84,15 +84,12 @@ class Adapter_Generic:
 
 #---- UI ----------------------------------------------------------------------#
 
-    def get_name(self):
-        return name
 
-    def say(msg):
-        # FIXME: Support for silent flag
-        print(f"{self.get_name()} > {msg}")
+    def say(self, msg):
+        Logging.info(f"{self.get_name()} > {msg}")
 
     def say_hi(self):
-        say("Initialized")
+        self.say("Initialized")
 
     def say_bye(self):
-        say("Shutdown")
+        self.say("Shutdown")

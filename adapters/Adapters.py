@@ -10,9 +10,9 @@ import subprocess
 from utils.IO import  download, untar, verify_hash, format
 import utils.Logging as Logging
 
-from . import Adapter_BUDDY as BUDDY
-from . import Adapter_CUDD as CUDD
-from .BDD import BDD
+from . import BUDDY
+from . import CUDD
+from . import BDD
 
 
 def get_lib(stub):

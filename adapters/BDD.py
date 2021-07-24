@@ -17,8 +17,6 @@ def get_meta(lib):
     }
 
 class BDD:
-
-
     def __init__(self, lib):
         self.bdd = None
         self.lib = lib
@@ -31,8 +29,9 @@ class BDD:
     def __enter__(self):
         return self
 
-    def __exit__(self, *args):        
+    def __exit__(self, *args):      
         self.mgr.exit()
+        
 
     def get_type(self):
         return "BDD Library"
@@ -74,7 +73,7 @@ class BDD:
 
     def set_dvo(self, dvo_stub):
         if self.mgr is None:
-            Logging.log_warning("BDD manager not initialized, not setting DVO.")
+            Logging.warning("BDD manager not initialized, not setting DVO.")
             return
 
         dvo_options = self.lib.dvo_options
@@ -86,15 +85,14 @@ class BDD:
         else:
             if dvo_stub in dvo_options:
                 self.mgr.enable_dvo(dvo_options[dvo_stub])
-                Logging.log_info(f"Enabled DVO {dvo_stub}")
+                Logging.info(f"Enabled DVO {dvo_stub}")
             else:
-                Logging.log_warning(f"Library {lib.name} does not support DVO {dvo_stub}")
+                Logging.warning(f"Library {lib.name} does not support DVO {dvo_stub}")
                 self.list_available_dvo_options()
                 self.disable_dvo()
 
     def disable_dvo(self):
         self.mgr.disable_dvo()
-        Logging.log_info(f"{self.mgr.get_name()} > Disabled DVO")
 
     def get_dvo(self):
         return self.mgr.dvo
@@ -102,7 +100,7 @@ class BDD:
     def list_available_dvo_options(self):
         ls = [x for x, _ in self.lib.dvo_options.items()]
 
-        print(f"Available DVO options for {self.lib.name}:", bulk_format(Logging.highlight(", ".join(ls)), color = "blue"))
+        Logging.info(f"Available DVO options for {self.lib.name}:", bulk_format(Logging.highlight(", ".join(ls)), color = "blue"))
 
     def fromCNF(self, cnf, order = None):
 
@@ -118,7 +116,7 @@ class BDD:
 
         for i, clause in enumerate(cnf.clauses):
 
-            Logging.log_info(f"{i + 1} / {len(cnf.clauses)} ({100*(i+1)/len(cnf.clauses):3.1f}%)")
+            Logging.info(f"{i + 1} / {len(cnf.clauses)} ({100*(i+1)/len(cnf.clauses):3.1f}%)")
 
             clause_bdd = mgr.zero_()
 
@@ -131,12 +129,7 @@ class BDD:
                 else:
                     clause_bdd = mgr.or_(clause_bdd, mgr.ithvar_(y))
 
-
-            try:
-                bdd = mgr.and_(bdd, clause_bdd)            
-
-            except StopIteration:
-                print("Skipping clause", i + 1, "due to timeout")
+            bdd = mgr.and_(bdd, clause_bdd)
 
         time_stop = datetime.now()
 
@@ -148,8 +141,11 @@ class BDD:
         if filename is None:
             filename = Caching.get_artifact_cache(self.meta['input-name'], self.lib.stub, self.mgr.dvo)
 
-        Logging.log_info("Dumpfile:", Logging.highlight(filename))
+        Logging.info("Dumpfile:", Logging.highlight(filename))
 
         self.mgr.dump(self.bdd, filename, no_variables = self.no_variables, meta = self.meta)
 
         return filename
+
+    def to_dot(self):
+        return self.mgr.dump_dot(self.bdd)

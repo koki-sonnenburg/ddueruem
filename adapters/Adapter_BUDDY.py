@@ -162,11 +162,13 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
     def enable_dvo(self, dvo_id = "lib-default"):
         self.dvo_id = dvo_id  
-        self.buddy.bdd_autoreorder(dvo_id)
+        self.buddy.bdd_autoreorder(dvo_options["dvo_id"])
+        self.say(f"DVO enabled ({dvo_id}, {dvo_options['dvo_id']})")
 
-    def disable_dvo(self, dvo_id):    
+    def disable_dvo(self):    
         self.dvo_id = None
         self.buddy.bdd_autoreorder(dvo_options["off"])
+        self.say("DVO disabled")
 
     def set_order(self, order):
         order_min = min(order)
@@ -177,7 +179,7 @@ class Manager(Adapter_Generic.Adapter_Generic):
         arr = (c_uint * len(order))(*order)
 
         self.buddy.bdd_setvarorder(arr)
-        say(f"Set variable order to {order}")
+        self.say(f"Set variable order to {order}")
 
     def dvo_once(self, dvo_id = None):
 
@@ -200,3 +202,14 @@ class Manager(Adapter_Generic.Adapter_Generic):
     def dump(self, bdd, filename, meta = {}, **kwargs):
         self.buddy.bdd_fnsave(c_char_p(filename.encode("utf-8")), bdd)
         format2file(filename, meta = meta)
+
+    def dump_dot(self, bdd):
+        self.buddy.bdd_fnprintdot(c_char_p("/tmp/bdd.dot".encode("utf-8")), bdd)
+        with open("/tmp/bdd.dot") as file:
+            out = file.read()
+
+        return out
+
+    def get_name(self):
+        return name
+

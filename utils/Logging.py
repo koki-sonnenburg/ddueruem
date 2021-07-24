@@ -1,82 +1,101 @@
 from datetime import datetime
 import os
-
+import config
 from .IO import format, bulk_format, timestamp
 
 logger = None
 
-LL_ALL = 3
-LL_INFO = 2
-LL_WARNING = 1
-LL_ERROR = 0
-LL_OFF = -1
+LL_ALL = 4
+LL_INFO = 3
+LL_WARNING = 2
+LL_ERROR = 1
+LL_OFF = 0
 
-log_level_volatile = LL_INFO
-log_level_persistent = LL_OFF
+def init(ll_vol, ll_per):
+    Logger(ll_vol, ll_per)
 
 def highlight(x):
     return f"$${x}$$"
 
-# logging
+def get_logger():
+    if logger:
+        return logger
+    else:
+        return Logger()
 
 def log(*msgs):
-    if log_level_persistent >= LL_ALL and logger:
-        logger.log(timestamp(), "[#]", bulk_format(*msgs))
+    get_logger().log(*msgs)
 
-    if log_level_volatile >= LL_ALL:
-        print(bulk_format(*msgs, color = "green"))
+def info(*msgs):
+    get_logger().info(*msgs)
 
-def log_info(*msgs, sep = " "):
+def warning(*msgs):
+    get_logger().warning(*msgs)
 
-    if log_level_persistent >= LL_INFO and logger:
-        logger.log(timestamp(), "[I]", bulk_format(*msgs))
+def error(*msgs):
+    get_logger().error(*msgs)
 
-    if log_level_volatile >= LL_INFO:
-        print(bulk_format(*msgs, color = "blue", str_sep = sep))
-
-
-def log_warning(*msgs):
-
-    if log_level_persistent >= LL_WARNING and logger:
-        logger.log(timestamp(), "[W]", bulk_format(*msgs))
-
-    if log_level_volatile >= LL_WARNING:
-        print(format("Warning", color = "red", attrs = ["bold"]), bulk_format(*msgs, color = "red"))
-
-
-def log_error(*msgs, error_code = 1):
-
-    if log_level_persistent >= LL_ERROR and logger:
-        logger.log(timestamp(), "[W]", bulk_format(*msgs))
-
-    print()
-    print(format("ERROR", color = "red", bg = "on_white", attrs = ["bold"]), bulk_format(*msgs, color = "red"))
-    print()
-
-    exit(error_code)
-#
-
-def init(filename, volatile_log_level = None, persistent_log_level = None):
-    global logger, log_level_volatile, log_level_persistent
-    if volatile_log_level:
-        log_level_volatile = volatile_log_level
-    
-    if persistent_log_level:
-        log_level_persistent = persistent_log_level
-    
-    logger = Logger(filename)
-
-def silence():
-    global log_level_volatile, log_level_persistent
-
-    log_level_volatile = LL_OFF
-    log_level_persistent = LL_OFF
+def vspace():
+    get_logger().vspace()
 
 class Logger:
-    def __init__(self, filename):
-        self.logfile = filename
+    def __init__(self, ll_vol=config.LL_VOLATILE_DEFAULT, ll_per=config.LL_PERSISTENT_DEFAULT):
+        global logger
+        logger = self
+
+        if ll_vol[1] > 0:
+            logfile = f"{config.LOG_DIR}/log-{timestamp('-', '-')}.log"
+            
+            with open(logfile, "w+") as file:
+                pass
+
+            self.logfile = logfile
+
+        self.ll_vol = ll_vol[1]
+        self.ll_per = ll_per[1]
 
     def log(self, *msgs):
+        if self.ll_per >= LL_ALL:
+            self.write_log_to_file(timestamp(), "[#]", bulk_format(*msgs))
+
+        if self.ll_vol >= LL_ALL:
+            print(bulk_format(*msgs, color = "green"))
+
+    def info(self, *msgs, sep = " "):
+
+        if self.ll_per >= LL_INFO and logger:
+            self.write_log_to_file(timestamp(), "[I]", bulk_format(*msgs))
+
+        if self.ll_vol >= LL_INFO:
+            print(bulk_format(*msgs, color = "blue", str_sep = sep))
+
+    def warning(self, *msgs):
+
+        if self.ll_per >= LL_WARNING and logger:
+            self.write_log_to_file(timestamp(), "[W]", bulk_format(*msgs))
+
+        if self.ll_vol >= LL_WARNING:
+            print(format("Warning", color = "red", attrs = ["bold"]), bulk_format(*msgs, color = "red"))
+
+
+    def error(self, *msgs, error_code = 1, resilient = False):
+
+        if self.ll_per >= LL_ERROR and logger:
+            self.write_log_to_file(timestamp(), "[W]", bulk_format(*msgs))
+
+        print()
+        print(format("ERROR", color = "red", bg = "on_white", attrs = ["bold"]), bulk_format(*msgs, color = "red"))
+        print()
+
+        # TODO: What calls are resilient?
+        if not resilient:
+            exit(error_code)
+
+    def vspace(self):
+        if self.ll_vol > LL_WARNING:
+            print()
+
+    def write_log_to_file(self, *msgs):
         with open(self.logfile, "a") as file:
             if len(msgs) == 1:
                 file.write(msgs[0])

@@ -6,12 +6,12 @@ import os
 import re
 
 import subprocess
-import sys
 
 from . import Adapter_Generic
 from config import CACHE_DIR
 
 import utils.Logging as Logging
+from utils.IO import STDOUT_Recorder
 
 name        = "CUDD 3.0.0"
 stub        = "cudd"
@@ -139,30 +139,6 @@ def format2file(filename, meta = {}, order = []):
         file.write(f"{os.linesep}".join(content))
         file.write(os.linesep)
 
-#---- Utility Class -----------------------------------------------------------#
-
-class STDOUT_Recorder():
-
-    def __init__(self, filename):
-        with open(filename, "w"):
-            pass
-
-        sys.stdout.flush()
-        self._oldstdout_fno = os.dup(sys.stdout.fileno())
-        self.sink = os.open(filename, os.O_WRONLY)
-
-    def __enter__(self):
-        self._newstdout = os.dup(1)
-        os.dup2(self.sink, 1)
-        os.close(self.sink)
-        sys.stdout = os.fdopen(self._newstdout, 'w')
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        sys.stdout = sys.__stdout__
-        sys.stdout.flush()
-        os.dup2(self._oldstdout_fno, 1)
-
 #---- CDLL Companion Classes --------------------------------------------------#
 
 class DdNode(Structure):
@@ -187,10 +163,9 @@ class DdManager(Structure):
         ('cachedeletions', c_double)
     ]
 
+#---- Initialization, Setup, Destruction---------------------------------------#
 
 class Manager(Adapter_Generic.Adapter_Generic):
-
-#---- Initialization, Setup, Destruction---------------------------------------#
 
     def init(self):
         self.cudd = self.load_lib(shared_lib, hint_install)
@@ -204,6 +179,7 @@ class Manager(Adapter_Generic.Adapter_Generic):
             self._exit = declare(self.cudd.Cudd_Quit, [POINTER(DdManager)])
 
         self._exit(self.mgr)
+        self.say_bye()
 
     def set_no_variables(self, no_variables):
 
@@ -366,12 +342,13 @@ class Manager(Adapter_Generic.Adapter_Generic):
         arr = (c_uint * len(order))(*order)
         self._setorder(self.mgr, arr)
 
-    def enable_dvo(self, dvo_id):
+    def enable_dvo(self, dvo_id = "lib-default"):
 
         if not hasattr(self, "_enable_dynorder"):
             self._enable_dynorder = declare(self.cudd.Cudd_AutodynEnable, [POINTER(DdManager), c_int])
 
-        self._enable_dynorder(self.mgr, dvo_id)
+        self._enable_dynorder(self.mgr, dvo_options["dvo_id"])
+        self.say(f"DVO enabled ({dvo_id}, {dvo_options['dvo_id']})")
 
     def disable_dvo(self):
 
@@ -379,4 +356,7 @@ class Manager(Adapter_Generic.Adapter_Generic):
             self._disable_dynorder = declare(self.cudd.Cudd_AutodynDisable, [POINTER(DdManager)])
 
         self._disable_dynorder(self.mgr)
+        self.say("DVO disabled")
 
+    def get_name(self):
+        return name
