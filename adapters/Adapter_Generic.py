@@ -62,8 +62,12 @@ class Adapter_Generic:
         else:
             return CDLL(f"./{shared_lib}")
 
-    def dump(self, bdd, filename, mgr = None):
+    def dump(self, bdd, filename):
         raise NotImplementedError()
+   
+    def dump_dot(self, bdd, filename):
+        raise NotImplementedError()
+   
    
 #---- Variable Ordering -------------------------------------------------------#
 

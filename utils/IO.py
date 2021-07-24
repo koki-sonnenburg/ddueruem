@@ -20,7 +20,7 @@ import sys
 import config
 
 # initialize i18n
-i18n.load_path.append("i18n")
+i18n.load_path.append("lang")
 i18n.set('filename_format', '{locale}.{format}')
 
 ### Download

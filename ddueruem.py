@@ -6,7 +6,6 @@ import argparse
 from datetime import datetime
 
 from termcolor import cprint
-from pyfiglet import figlet_format
 
 import os
 from os import path
@@ -79,10 +78,6 @@ def init(root_script = __file__, log_level = None, silent = False, no_log = Fals
     # move to directory of the executed script
     os.chdir(os.path.dirname(os.path.realpath(root_script)))
 
-    # initialize logging
-    log_dir = config.LOG_DIR
-    verify_create(log_dir)
-
     if not log_level:
         ll_vol = config.LL_VOLATILE_DEFAULT
         ll_per = config.LL_PERSISTENT_DEFAULT
@@ -91,19 +86,21 @@ def init(root_script = __file__, log_level = None, silent = False, no_log = Fals
         ll_per = log_level
 
     if silent:
-        ll_vol = config.LOGLEVEL_CHOICES[0]
+        ll_vol = 0 # LL_OFF
     
     if no_log:
-        ll_per = config.LOGLEVEL_CHOICES[0]
+        ll_per = 0 # LL_OFF
 
     Logging.init(ll_vol, ll_per)
 
     # verify existence of the folders cache & report
     cache_dir = config.CACHE_DIR
     report_dir = config.REPORT_DIR
+    log_dir = config.LOG_DIR
 
-    verify_create(cache_dir)
+    verify_create(log_dir)
     verify_create(report_dir)
+    verify_create(cache_dir)
 
 def verify_create(dir):
     """Creates the directory dir if it does not already exist."""
@@ -139,15 +136,15 @@ def cli():
 
     # Run Options
     parser.add_argument("--lib", help = bulk_format("cli--lib"), choices = config.LIBRARY_CHOICES, type = str.lower, default = config.LIB_DEFAULT)
-    parser.add_argument("--parser", help = bulk_format("cli--parser"), choices = config.PARSER_CHOICES, type = str.lower, default = config.PARSER_DEFAULT)
-    parser.add_argument("--mode", help = bulk_format("cli--mode"), choices = config.MODE_CHOICES, type = str.lower, default = config.MODE_DEFAULT)
+    parser.add_argument("--parser", help = bulk_format("cli--parser"), choices = config.PARSER_CHOICES, type = str.lower, default = None)
+    # parser.add_argument("--mode", help = bulk_format("cli--mode"), choices = config.MODE_CHOICES, type = str.lower, default = config.MODE_DEFAULT)
 
     # Variable Ordering
     parser.add_argument("--preorder", help = bulk_format("cli--preorder"), choices = config.PREORDER_CHOICES, type = str.lower, default = config.SVO_DEFAULT)
     parser.add_argument("--dynorder", help = bulk_format("cli--dynorder"), type = str.lower, default = config.DVO_DEFAULT)
     
     # IO Toggles
-    parser.add_argument("--log-level", help = bulk_format("cli--log-level"), choices = config.LOGLEVEL_CHOICES, type = str.lower, default = None)
+    parser.add_argument("--log-level", help = bulk_format("cli--log-level"), choices = config.LOGLEVEL_CHOICES, type = str, default = None)
     parser.add_argument("--silent", help = bulk_format("cli--silent"), dest = "silent", action = "store_true", default = False)
     parser.add_argument("--no-log", help = bulk_format("cli--no-log"), dest = "no_log", action = "store_true", default = False)
     parser.add_argument("--no-cache", help = bulk_format("cli--no-cache"), dest = "cache", action = "store_false", default = True)
@@ -157,7 +154,12 @@ def cli():
 
     args = parser.parse_args()
 
-    init(log_level = args.log_level, silent = args.silent, no_log = args.no_log)
+    log_level = args.log_level
+
+    if args.log_level:
+        log_level = config.LOGLEVEL_CHOICES.index(args.log_level)
+
+    init(log_level = log_level, silent = args.silent, no_log = args.no_log)
 
     Logging.info("ddueruem", config.DDUERUEM_VERSION)
     Logging.vspace()

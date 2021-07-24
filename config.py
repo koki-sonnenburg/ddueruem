@@ -1,8 +1,7 @@
-DDUERUEM_VERSION = "v2021-03"
+DDUERUEM_VERSION = "v2021-07"
 
 LIB_DEFAULT     = "buddy"
 PARSER_DEFAULT  = "auto"
-MODE_DEFAULT    = "full"
 SVO_DEFAULT     = "off"
 DVO_DEFAULT     = "off"
 
@@ -14,12 +13,11 @@ REPORT_DIR  = "_reports"
 # CLI choices
 PREORDER_CHOICES    = ["off", "force", "force-triage", "dbo"]
 
-PARSER_CHOICES      = ["auto", "dimacs"]
-MODE_CHOICES        = ["full", "only-ctcs", "only-fd"] # ignored for now
+PARSER_CHOICES      = ["dimacs"]
 
-LOGLEVEL_CHOICES     = [("LL_OFF", 0), ("LL_ERROR", 1), ("LL_WARNING", 2), ("LL_INFO", 3), ("LL_ALL", 4)]
-LL_VOLATILE_DEFAULT = LOGLEVEL_CHOICES[3]
-LL_PERSISTENT_DEFAULT = LOGLEVEL_CHOICES[4]
+LOGLEVEL_CHOICES     = ["LL_OFF", "LL_ERROR", "LL_WARNING", "LL_INFO", "LL_ALL"]
+LL_VOLATILE_DEFAULT = 3 # LL_INFO
+LL_PERSISTENT_DEFAULT = 4 # LL_AL
 
 LIBRARY_CHOICES         = ["buddy", "cudd"]
 INSTALL_CHOICES         = ["all", "buddy", "cudd"]

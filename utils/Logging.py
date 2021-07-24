@@ -43,7 +43,7 @@ class Logger:
         global logger
         logger = self
 
-        if ll_vol[1] > 0:
+        if ll_vol > 0:
             logfile = f"{config.LOG_DIR}/log-{timestamp('-', '-')}.log"
             
             with open(logfile, "w+") as file:
@@ -51,8 +51,8 @@ class Logger:
 
             self.logfile = logfile
 
-        self.ll_vol = ll_vol[1]
-        self.ll_per = ll_per[1]
+        self.ll_vol = ll_vol
+        self.ll_per = ll_per
 
     def log(self, *msgs):
         if self.ll_per >= LL_ALL:

@@ -114,9 +114,9 @@ class BDD:
 
         time_start = datetime.now()
 
-        for i, clause in enumerate(cnf.clauses):
+        info_indent = len(str(len(cnf.clauses)))
 
-            Logging.info(f"{i + 1} / {len(cnf.clauses)} ({100*(i+1)/len(cnf.clauses):3.1f}%)")
+        for i, clause in enumerate(cnf.clauses):
 
             clause_bdd = mgr.zero_()
 
@@ -130,8 +130,9 @@ class BDD:
                     clause_bdd = mgr.or_(clause_bdd, mgr.ithvar_(y))
 
             bdd = mgr.and_(bdd, clause_bdd)
-
-        time_stop = datetime.now()
+            
+            time_stop = datetime.now()            
+            Logging.info(f"{i + 1:{info_indent}} / {len(cnf.clauses)} ({100*(i+1)/len(cnf.clauses):5.1f}%) {format_runtime(time_stop - time_start)}")
 
         self.meta["runtime-compilation"] = format_runtime(time_stop - time_start)
         self.bdd = bdd
