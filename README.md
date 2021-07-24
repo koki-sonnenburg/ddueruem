@@ -7,6 +7,12 @@ A wrapper for the BDD libraries BuDDy and CUDD.
 * `glibc`
 
 ### Usage:
+#### Binary:
+```bash
+./setup all # install BuDDy and CUDD
+./ddueruem <file>.dimacs # build BDD for file 
+```
+#### From Source:
 ```bash
 # create virtual environment (Python 3.x)
 python -m venv .venv
@@ -15,7 +21,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 # install required packages
-pip install -r requirements.txt
+pip install -r requirements_min.txt
 
 # show ddueruem help
 ./ddueruem -h
@@ -31,7 +37,7 @@ pip install -r requirements.txt
 ./ddueruem examples/sandwich.dimacs --preorder force
 
 # Ignore a previously cached variable order
-./ddueruem examples/sandwich.dimacs --preorder force --ignore-cached-order
+./ddueruem examples/sandwich.dimacs --preorder force --no-cache
 
 # Disable automatic reordering
 ./ddueruem examples/sandwich.dimacs --dynorder off
