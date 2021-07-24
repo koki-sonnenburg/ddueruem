@@ -30,15 +30,15 @@ def get_lib(stub):
 def install(lib, clean = False):
 
     if clean:
-        Logging.log_info(f"Clean installing", Logging.highlight(lib.name))
+        Logging.info(f"Clean installing", Logging.highlight(lib.name))
     else:
-        Logging.log_info(f"Installing", Logging.highlight(lib.name))
+        Logging.info(f"Installing", Logging.highlight(lib.name))
         
     if path.exists(lib.shared_lib):
         if clean:
-            Logging.log_info(f"Ignoring existing shared library", Logging.highlight(lib.shared_lib))
+            Logging.info(f"Ignoring existing shared library", Logging.highlight(lib.shared_lib))
         else: 
-            Logging.log_info(Logging.highlight(lib.shared_lib), "already exists, skipping install")
+            Logging.info(Logging.highlight(lib.shared_lib), "already exists, skipping install")
             return 
 
     if clean or not path.exists(lib.archive):    
@@ -51,7 +51,7 @@ def install(lib, clean = False):
         if not valid:
             Logging.log_error(reason)
 
-        Logging.log_info(f"Unpacking", Logging.highlight(lib.archive))
+        Logging.info(f"Unpacking", Logging.highlight(lib.archive))
         untar(lib.archive)
 
     if clean or not path.exists(lib.shared_lib):            
@@ -62,6 +62,6 @@ def install(lib, clean = False):
         subprocess.run(['make', lib.stub, '-j4'], stdout=subprocess.PIPE).stdout.decode('utf-8')
     
     if path.exists(lib.shared_lib):
-        Logging.log_info(f'{lib.name} build: {format("SUCCESS", color = "green", attrs = ["bold"])}')
+        Logging.info(f'{lib.name} build: {format("SUCCESS", color = "green", attrs = ["bold"])}')
     else:
-        Logging.log_warning(f'{lib.name} build: {format("FAIL", color = "red", attrs = ["bold"])}')
+        Logging.warning(f'{lib.name} build: {format("FAIL", color = "red", attrs = ["bold"])}')

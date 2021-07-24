@@ -34,8 +34,9 @@ def cli():
         libs =  config.INSTALLABLE_LIBRARIES
 
     for lib in libs:
-        lib = Adapters.get_lib(lib)  
-        Adapters.install(lib, args.clean)   
+        _, lib = Adapters.get_lib(lib)  
+        Adapters.install(lib, args.clean)
+        Logging.vspace()
 
 #------------------------------------------------------------------------------#
 
