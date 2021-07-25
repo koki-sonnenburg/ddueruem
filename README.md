@@ -10,6 +10,7 @@ A wrapper for the BDD libraries BuDDy and CUDD.
 #### Binary:
 ```bash
 ./setup all # install BuDDy and CUDD
+./ddueruem -h
 ./ddueruem <file>.dimacs # build BDD for file 
 ```
 #### From Source:
@@ -37,7 +38,7 @@ pip install -r requirements_min.txt
 ./ddueruem examples/sandwich.dimacs --preorder force
 
 # Ignore a previously cached variable order
-./ddueruem examples/sandwich.dimacs --preorder force --no-cache
+./ddueruem examples/sandwich.dimacs --preorder force --ignore-cached-order
 
 # Disable automatic reordering
 ./ddueruem examples/sandwich.dimacs --dynorder off
@@ -64,5 +65,5 @@ In addition `<input>.order` files are created, containing
 * **Dynorder:** off
 
 ### Troubleshooting
-1) `bash: ./ddueruem.py: Permission denied` <br>
+`bash: ./ddueruem.py: Permission denied` <br>
 **Solution:** Execute `chmod u+x ddueruem.py` to make the file executable.
