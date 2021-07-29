@@ -5,16 +5,16 @@ import re
 import subprocess
 
 from . import Adapter_Generic
-from config import CACHE_DIR
+import config
 
 import utils.Logging as Logging
 
 name        = "BuDDy 2.4"
 stub        = "buddy"
 url         = "https://sourceforge.net/projects/buddy/files/buddy/BuDDy%202.4/buddy-2.4.tar.gz/download"
-archive     = f"{CACHE_DIR}/buddy-2.4.tar.gz"
+archive     = f"{config.CACHE_DIR}/buddy-2.4.tar.gz"
 archive_md5 = "3b59cb073bcb3f26efdb851d617ef2ed"
-sources_dir  = f"{CACHE_DIR}/buddy-2.4"
+sources_dir  = f"{config.CACHE_DIR}/buddy-2.4"
 shared_lib  = "libbuddy.so"
 
 configure_settings = "CFLAGS=-fPIC -std=c99"

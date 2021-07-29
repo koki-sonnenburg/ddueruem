@@ -58,7 +58,7 @@ class Adapter_Generic:
 
     def load_lib(self, shared_lib, hint_install):
         if not path.exists(shared_lib):
-            Logging.log_error(Logging.highlight(shared_lib), "not found, please install first with", Logging.highlight(hint_install))
+            Logging.error(Logging.highlight(shared_lib), "not found, please install first with", Logging.highlight(hint_install))
         else:
             return CDLL(f"./{shared_lib}")
 

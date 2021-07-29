@@ -8,7 +8,7 @@ import re
 import subprocess
 
 from . import Adapter_Generic
-from config import CACHE_DIR
+import config
 
 import utils.Logging as Logging
 from utils.IO import STDOUT_Recorder
@@ -16,9 +16,9 @@ from utils.IO import STDOUT_Recorder
 name        = "CUDD 3.0.0"
 stub        = "cudd"
 url         = "https://davidkebo.com/source/cudd_versions/cudd-3.0.0.tar.gz"
-archive     = f"{CACHE_DIR}/cudd-3.0.0.tar.gz"
+archive     = f"{config.CACHE_DIR}/cudd-3.0.0.tar.gz"
 archive_md5 = "4fdafe4924b81648b908881c81fe6c30"
-sources_dir  = f"{CACHE_DIR}/cudd-3.0.0"
+sources_dir  = f"{config.CACHE_DIR}/cudd-3.0.0"
 shared_lib  = "libcudd.so"
 
 configure_settings = "CFLAGS=-fPIC -std=c99"

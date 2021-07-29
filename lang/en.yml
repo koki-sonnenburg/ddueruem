@@ -32,9 +32,15 @@ en:
   cli--ignore-cached-order: ignore cached variable orders.
   cli--ignore-cached-artifacts: ignore cached BDDs.
 
+  cli--log-level: Specify the level of logging
+
+  cli--cache-dir: Specify the directory to store caches to
+  cli--log-dir: Specify the directory to store logifles to
+  cli--report-dir: Specify the directory to store report files to
+
   # setup cli
 
   cli_setup_desc: Download and build supported libraries
   
   cli_setup--install: download and install the chosen libraries.
-  cli_setup--clean-install: as --install, but ignores existing downloads, sources, and shared libraries.
+  cli_setup--clean: ignores existing downloads, sources, and shared libraries.

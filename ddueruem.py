@@ -148,12 +148,24 @@ def cli():
     parser.add_argument("--log-level", help = bulk_format("cli--log-level"), choices = config.LOGLEVEL_CHOICES, type = str, default = None)
     parser.add_argument("--silent", help = bulk_format("cli--silent"), dest = "silent", action = "store_true", default = False)
     parser.add_argument("--no-log", help = bulk_format("cli--no-log"), dest = "no_log", action = "store_true", default = False)
-    parser.add_argument("--no-cache", help = bulk_format("cli--no-cache"), dest = "cache", action = "store_false", default = True)
 
     # Caching Toggles    
     parser.add_argument("--ignore-cached-order", help = bulk_format("cli--ignore-cached-order"), dest = "use_cached_order", action = "store_false", default = True)
 
+    parser.add_argument("--report-dir", help = bulk_format("cli--report-dir"))
+    parser.add_argument("--log-dir", help = bulk_format("cli--log-dir"))
+    parser.add_argument("--cache-dir", help = bulk_format("cli--cache-dir"))
+
     args = parser.parse_args()
+
+    if args.report_dir:
+        config.REPORT_DIR = args.report_dir
+
+    if args.log_dir:
+        config.LOG_DIR = args.log_dir
+
+    if args.cache_dir:
+        config.CACHE_DIR = args.cache_dir
 
     log_level = args.log_level
 
