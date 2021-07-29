@@ -347,8 +347,8 @@ class Manager(Adapter_Generic.Adapter_Generic):
         if not hasattr(self, "_enable_dynorder"):
             self._enable_dynorder = declare(self.cudd.Cudd_AutodynEnable, [POINTER(DdManager), c_int])
 
-        self._enable_dynorder(self.mgr, dvo_options["dvo_id"])
-        self.say(f"DVO enabled ({dvo_id}, {dvo_options['dvo_id']})")
+        self._enable_dynorder(self.mgr, dvo_options[dvo_id])
+        self.say(f"DVO enabled ({dvo_id}, {dvo_options[dvo_id]})")
 
     def disable_dvo(self):
 
