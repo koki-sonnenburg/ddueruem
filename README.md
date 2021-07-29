@@ -25,26 +25,26 @@ source .venv/bin/activate
 pip install -r requirements_min.txt
 
 # show ddueruem help
-./ddueruem -h
+./ddueruem.py -h
 
 # install BuDDy & CUDD
 ./setup.py buddy cudd
 
 # create BDD for example sandwich.dimacs
-./ddueruem examples/sandwich.dimacs --lib buddy 
-./ddueruem examples/sandwich.dimacs --lib cudd
+./ddueruem.py examples/sandwich.dimacs --lib buddy 
+./ddueruem.py examples/sandwich.dimacs --lib cudd
 
 # preorder with FORCE
-./ddueruem examples/sandwich.dimacs --preorder force
+./ddueruem.py examples/sandwich.dimacs --preorder force
 
 # Ignore a previously cached variable order
-./ddueruem examples/sandwich.dimacs --preorder force --ignore-cached-order
+./ddueruem.py examples/sandwich.dimacs --preorder force --ignore-cached-order
 
 # Disable automatic reordering
-./ddueruem examples/sandwich.dimacs --dynorder off
+./ddueruem.py examples/sandwich.dimacs --dynorder off
 
 # Display available DVO in BuDDy
-./ddueruem examples/sandwich.dimacs --dynorder help --lib buddy
+./ddueruem.py examples/sandwich.dimacs --dynorder help --lib buddy
 ```
 ### Reports
 For every run of `ddueruem` a file is generated: `<input>-<lib>-dvo_<dvo>.bdd`, it contains
@@ -54,7 +54,7 @@ For every run of `ddueruem` a file is generated: `<input>-<lib>-dvo_<dvo>.bdd`, 
 * Runtimes for parsing, pre-ordering, and compilation
 * The variable order after pre-ordering and after compilation
 * The BDD
-
+ 
 In addition `<input>.order` files are created, containing
 * Name and hash of the input file
 * The order used for the last compilation attempt

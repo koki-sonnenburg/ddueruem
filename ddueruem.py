@@ -78,6 +78,9 @@ def init(root_script = __file__, log_level = None, silent = False, no_log = Fals
     # move to directory of the executed script
     os.chdir(os.path.dirname(os.path.realpath(root_script)))
 
+    log_dir = config.LOG_DIR
+    verify_create(log_dir)
+
     if not log_level:
         ll_vol = config.LL_VOLATILE_DEFAULT
         ll_per = config.LL_PERSISTENT_DEFAULT
@@ -96,9 +99,7 @@ def init(root_script = __file__, log_level = None, silent = False, no_log = Fals
     # verify existence of the folders cache & report
     cache_dir = config.CACHE_DIR
     report_dir = config.REPORT_DIR
-    log_dir = config.LOG_DIR
 
-    verify_create(log_dir)
     verify_create(report_dir)
     verify_create(cache_dir)
 
