@@ -162,8 +162,8 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
     def enable_dvo(self, dvo_id = "lib-default"):
         self.dvo_id = dvo_id  
-        self.buddy.bdd_autoreorder(dvo_options["dvo_id"])
-        self.say(f"DVO enabled ({dvo_id}, {dvo_options['dvo_id']})")
+        self.buddy.bdd_autoreorder(dvo_options[dvo_id])
+        self.say(f"DVO enabled ({dvo_id}, {dvo_options[dvo_id]})")
 
     def disable_dvo(self):    
         self.dvo_id = None
