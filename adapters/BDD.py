@@ -87,7 +87,7 @@ class BDD:
                 self.mgr.enable_dvo(dvo_options[dvo_stub])
                 Logging.info(f"Enabled DVO {dvo_stub}")
             else:
-                Logging.warning(f"Library {lib.name} does not support DVO {dvo_stub}")
+                Logging.warning(f"Library {self.lib.name} does not support DVO {dvo_stub}")
                 self.list_available_dvo_options()
                 self.disable_dvo()
 

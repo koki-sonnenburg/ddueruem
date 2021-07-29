@@ -173,7 +173,12 @@ def cli():
     kc_engine.say_hi()
 
     dvo = args.dynorder
-    kc_engine.set_dvo(dvo)
+
+    if dvo == "help":
+        kc_engine.list_available_dvo_options()
+        exit()
+    else:
+        kc_engine.set_dvo(dvo)
 
     Logging.vspace()
 
