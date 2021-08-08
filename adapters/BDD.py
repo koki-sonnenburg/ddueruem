@@ -116,6 +116,7 @@ class BDD:
 
         info_indent = len(str(len(cnf.clauses)))
 
+        bdd = mgr.one_()
         for i, clause in enumerate(cnf.clauses):
 
             clause_bdd = mgr.zero_()
@@ -132,7 +133,7 @@ class BDD:
             bdd = mgr.and_(bdd, clause_bdd)
             
             time_stop = datetime.now()            
-            Logging.info(f"{i + 1:{info_indent}} / {len(cnf.clauses)} ({100*(i+1)/len(cnf.clauses):5.1f}%) {format_runtime(time_stop - time_start)}")
+            Logging.info(f"{i + 1:{info_indent}} / {len(cnf.clauses)} ({100*(i+1)/len(cnf.clauses):5.1f}%) {format_runtime(time_stop - time_start)} {clause}")
 
         self.meta["runtime-compilation"] = format_runtime(time_stop - time_start)
         self.bdd = bdd

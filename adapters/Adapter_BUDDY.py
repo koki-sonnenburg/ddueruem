@@ -97,9 +97,11 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
         buddy.bdd_init(1000000, 100000)
         buddy.bdd_setminfreenodes(33)
-        buddy.bdd_setmaxincrease(c_int(100000))
+        buddy.bdd_setmaxincrease(c_int(1000000))
 
         self.buddy = buddy
+
+        self.timeout = 10
 
     def exit(self):
         self.buddy.bdd_done()
@@ -132,6 +134,7 @@ class Manager(Adapter_Generic.Adapter_Generic):
 #---- Binary Operators --------------------------------------------------------#
     
     def and_(self, lhs, rhs, free_factors = True):
+
         out = self.buddy.bdd_addref(self.buddy.bdd_and(lhs, rhs))
 
         if free_factors:

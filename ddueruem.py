@@ -5,14 +5,14 @@
 import argparse             
 from datetime import datetime
 
-from termcolor import cprint
-
 import os
 from os import path
 
+from pprint import pprint
+
 import re
 
-from pprint import pprint
+from termcolor import cprint
 
 #------------------------------------------------------------------------------#
 
@@ -47,20 +47,24 @@ def parsing(input_file, flag_parser = None):
 
 def ordering(expr, flag_preorder):
 
+    time_start = datetime.now()
+    
     order = SVO.compute_default_order(expr)
-
-    if flag_preorder != "off":
+    if flag_preorder == "off":
+        pass
+    elif flag_preorder == "random":
+        order = SVO.compute_random_order(expr)
+    else:
         preorder = SVO.select_svo(flag_preorder)
         Logging.info("SVO:", Logging.highlight(preorder.name()))
         
-        time_start = datetime.now()
         with preorder(flag_preorder) as svo:
             order = svo.run(expr, order)
             if svo.provides_clause_ordering():
                 expr.clauses = svo.order_clauses(expr.clauses, order)
 
-        time_stop = datetime.now()
-        expr.meta["runtime-preodering"] = format_runtime(time_stop-time_start)
+    time_stop = datetime.now()
+    expr.meta["runtime-preodering"] = format_runtime(time_stop-time_start)
 
     cachefile = Caching.get_order_cache(expr.meta["input-name"], flag_preorder)
     content = []
@@ -214,6 +218,7 @@ def cli():
         Logging.info("Using cached variable order:", Logging.highlight(order))
     else:
         order = ordering(expr, args.preorder)
+        Logging.info("Preordering time:", Logging.highlight(expr.meta["runtime-preodering"]))
 
     Logging.vspace()
 
