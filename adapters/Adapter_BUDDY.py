@@ -101,8 +101,7 @@ class Manager(Adapter_Generic.Adapter_Generic):
 
         self.buddy = buddy
 
-        self.timeout = 10
-
+        
     def exit(self):
         self.buddy.bdd_done()
         self.say_bye()
@@ -164,7 +163,7 @@ class Manager(Adapter_Generic.Adapter_Generic):
 #---- Variable Ordering -------------------------------------------------------#
 
     def enable_dvo(self, dvo_id = "lib-default"):
-        self.dvo_id = dvo_id  
+        self.dvo_id = dvo_id
         self.buddy.bdd_autoreorder(dvo_id)
 
     def disable_dvo(self):    

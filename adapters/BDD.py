@@ -32,7 +32,6 @@ class BDD:
     def __exit__(self, *args):      
         self.mgr.exit()
         
-
     def get_type(self):
         return "BDD Library"
 
@@ -44,11 +43,8 @@ class BDD:
 
 
     def buildFrom(self, input, order = None):
-
         if input.get_stub() == "cnf":
             self.fromCNF(input, order)
-        elif input.get_stub() == "fm":
-            self.fromFM(input, order)
         else:
             raise NotImplementedError(f"\"{input.get_stub()}\"")
 
@@ -69,8 +65,6 @@ class BDD:
         if order:
             mgr.set_order(order)
 
-        mgr.dvo = "off"
-
     def set_dvo(self, dvo_stub):
         if self.mgr is None:
             Logging.warning("BDD manager not initialized, not setting DVO.")
@@ -85,13 +79,14 @@ class BDD:
         else:
             if dvo_stub in dvo_options:
                 self.mgr.enable_dvo(dvo_options[dvo_stub])
-                Logging.info(f"Enabled DVO {dvo_stub}")
+                self.mgr.say(f"DVO: {dvo_stub}")
             else:
                 Logging.warning(f"Library {self.lib.name} does not support DVO {dvo_stub}")
                 self.list_available_dvo_options()
                 self.disable_dvo()
 
     def disable_dvo(self):
+        self.mgr.dvo = "off"
         self.mgr.disable_dvo()
 
     def get_dvo(self):
@@ -141,7 +136,7 @@ class BDD:
     def dump(self, filename = None):
 
         if filename is None:
-            filename = Caching.get_artifact_cache(self.meta['input-name'], self.lib.stub, self.mgr.dvo)
+            filename = Caching.get_artifact_cache(self.meta['input-name'], self.lib.stub, self.get_dvo())
 
         Logging.info("Dumpfile:", Logging.highlight(filename))
 
